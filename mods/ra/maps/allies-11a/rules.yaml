@@ -1,0 +1,155 @@
+World:
+	LuaScript:
+		Scripts: allies11a.lua, allies11a-AI.lua, campaign.lua, utils.lua
+	MissionData:
+		Briefing: briefing
+		BriefingVideo: ally11.vqa
+		WinVideo: shorbomb.vqa
+		LossVideo: shipsink.vqa
+		StartVideo: destroyr.vqa
+	ScriptLobbyDropdown@difficulty:
+		ID: difficulty
+		Label: dropdown-difficulty.label
+		Description: dropdown-difficulty.description
+		Values:
+			easy: options-difficulty.easy
+			normal: options-difficulty.normal
+			hard: options-difficulty.hard
+		Default: normal
+
+# TODO remove this later. It makes BadGuy use the more distinct Ukraine colors.
+^Palettes:
+	IndexedPlayerPalette:
+		PlayerIndex:
+			BadGuy: 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223
+			EvilGuy: 200, 200, 201, 202, 203, 203, 204, 205, 206, 206, 207, 221, 222, 222, 223, 223
+	IndexedPlayerPalette@NOSHADOW:
+		PlayerIndex:
+			BadGuy: 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223
+			EvilGuy: 200, 200, 201, 202, 203, 203, 204, 205, 206, 206, 207, 221, 222, 222, 223, 223
+
+# TODO Remove range testing stuff. This was for placing and testing proximities.
+^GainsExperience:
+	ExternalCondition@RANGETESTER:
+		Condition: pinged-by-tester
+	WithColoredOverlay@RANGETESTED:
+		RequiresCondition: pinged-by-tester
+
+^RangeTester:
+	WithRangeCircle:
+		Range: 10c0
+		Visible: Always 
+		Color: FF0000
+	SpeedMultiplier:
+		Modifier: 500
+	ProximityExternalCondition@RANGETESTER:
+		Condition: pinged-by-tester
+		Range: 10c0
+
+MH60:
+	Inherits@Tester: ^RangeTester
+
+HELI:
+	Inherits@Tester: ^RangeTester
+	WithRangeCircle:
+		Range: 12c0
+		Color: 00FF00
+	ProximityExternalCondition@RANGETESTER:
+		Range: 12c0
+
+FCOM:
+	AnnounceOnSeen:
+
+WEAP:
+	ProvidesPrerequisite@4TNKSTEK:
+		Prerequisite: stek
+		ResetOnOwnerChange: true
+		Factions: soviet
+
+^Submarine:
+	MustBeDestroyed:
+	ScriptTags:
+
+CA:
+	Buildable:
+		Prerequisites: ~disabled
+	RevealOnDeath:
+		Duration: 75
+
+DOG:
+	ScriptTags:
+
+E1:
+	ScriptTags:
+
+E2:
+	ScriptTags:
+
+E4:
+	ScriptTags:
+
+3TNK:
+	ScriptTags:
+
+4TNK:
+	Buildable:
+		Prerequisites: stek
+
+V2RL:
+	ScriptTags:
+
+ATEK:
+	Buildable:
+		Prerequisites: ~disabled
+
+GAP:
+	Buildable:
+		Prerequisites: ~disabled
+
+QTNK:
+	Buildable:
+		Prerequisites: ~disabled
+
+MCV:
+	Buildable:
+		Prerequisites: ~disabled
+
+MGG:
+	Buildable:
+		Prerequisites: ~disabled
+
+THF:
+	Buildable:
+		Prerequisites: ~disabled
+
+TRAN:
+	Buildable:
+		Prerequisites: ~disabled
+
+PDOX:
+	Buildable:
+		Prerequisites: ~disabled
+
+CTNK:
+	Buildable:
+		Prerequisites: ~disabled
+
+MRJ:
+	Buildable:
+		Prerequisites: ~disabled
+
+IRON:
+	Buildable:
+		Prerequisites: ~disabled
+
+DTRK:
+	Buildable:
+		Prerequisites: ~disabled
+
+MSLO:
+	Buildable:
+		Prerequisites: ~disabled
+
+E7:
+	Buildable:
+		Prerequisites: ~disabled

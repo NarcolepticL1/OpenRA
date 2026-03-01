@@ -57,8 +57,6 @@ SetDifficulty = function()
 
 		Periodic1Units = { "3tnk" }
 
-
-
     elseif Difficulty == "normal" then
         StartingCash = 6000
 
@@ -154,12 +152,6 @@ BadguyPeriodic4Units = {
 	normal = { "3tnk", "3tnk", "3tnk" },
 	easy = { "3tnk", "3tnk" }
 }
-
-AirGroup1 = { "yak" }
-AirGroup2 = { "yak", "yak" }
-AirGroup3 = { "mig", "mig" }
-AirGroup4 = { "mig", "mig", "yak" }
-AirGroup5 = { "mig", "mig", "mig", "yak", "yak", "yak", "yak" }
 
 --AirGroup1Route = { WP96.Location }
 --AirGroup2Route = { WP96.Location }
@@ -774,14 +766,13 @@ end
 OnAircraftStranded = function(aircraft, exit)
 	--Media.Debug("Stranded check")
 	local oldOwner = aircraft.Owner
-	-- Re-enable this
-	--[[
+
 	if oldOwner == USSR and HasAirfield(BadGuy) then
 		aircraft.Owner = BadGuy
 	elseif oldOwner == BadGuy and HasAirfield(USSR) then
 		aircraft.Owner = USSR
 	end
-	]]
+
 	if oldOwner == aircraft.Owner then
 		--Media.Debug("Send aircraft to elimination")
 		aircraft.Stop()
@@ -896,8 +887,12 @@ RunUSSRActivities = function ()
 		BuildBase(USSRBaseBlueprints, USSRFact, USSR)
 	end)
 
+	Trigger.AfterDelay(DateTime.Minutes(1), function()
+		ProduceArmor(USSRWeap, USSR)
+	end)
+	
 	ProduceInfantry(USSRBarr, USSR)
-	ProduceArmor(USSRWeap, USSR)
+	
 	--ProduceSubs(USSRSpen, USSR)
 end
 
@@ -906,13 +901,4 @@ RunBadGuyActivities = function ()
 	InsertBlueprints(BadGuyBaseBlueprints, BadGuyBaseExtraBlueprints)
 	BuildBase(BadGuyBaseBlueprints, BadGuyFact, BadGuy)
 
-	--[[
-	Trigger.AfterDelay(DateTime.Seconds(10), function()
-		ProduceInfantry(USSRBarr, USSR)
-	end)
-
-	Trigger.AfterDelay(DateTime.Seconds(10), function()
-		ProduceArmor(USSRWeap, USSR)
-	end)
-	]]
 end

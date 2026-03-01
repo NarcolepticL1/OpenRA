@@ -89,6 +89,10 @@ EdgeOfRiverTriggerActivator =
 	CPos.New(96,20), CPos.New(97,20), CPos.New(98,20), CPos.New(99,20), CPos.New(100,20), CPos.New(101,20)
 }
 
+USSRBase = {
+	USSRFact, USSRPower1, USSRPower2, USSRPower3, USSRPower4, USSRPower5, USSRPower6, USSRPower7, USSRProc, USSRBarr, USSRWeap, USSRSpen, USSRKenn, USSRAfld1, USSRAfld2, USSRAfld3, USSRAfld4, USSRDome, USSRStek, USSRFtur1, USSRFtur2, USSRTsla1, USSRTsla2
+}
+
 --TimerTicks = DateTime.Minutes(72)
 BadGuyAlerted = false
 USSRAlerted = false
@@ -180,7 +184,17 @@ InitialSovietPatrols = function()
 		mmth2.Patrol(MmthPatrolPath, true, DateTime.Seconds(12))
 	end)
 
+
 	OnAnyDamaged(mmt_patrol, function(victim, attacker)
+		if victim.Health < victim.MaxHealth * 0.75 and attacker.Owner == Greece then
+			victim.Stance = "AttackAnything"
+			AlertUSSR()
+		end
+	end)
+end
+
+InitialSovietWarning = function()
+	OnAnyDamaged(USSRBase, function(victim, attacker)
 		if victim.Health < victim.MaxHealth * 0.75 and attacker.Owner == Greece then
 			AlertUSSR()
 		end
@@ -311,11 +325,15 @@ FComLogic = function()
 	end)
 end
 
+
+
 InitTriggers = function()
 	Greece.Cash = StartingCash
 
 	InitialAlliedReinforcements()
+
 	InitialSovietPatrols()
+	InitialSovietWarning()
 
 	PrepareBadGuyAlerts()
 	FComLogic()
@@ -361,7 +379,7 @@ Tick = function()
 	if Ticked > 0 then
 		UserInterface.SetMissionText("Naval vessels arrive in " .. Utils.FormatTime(Ticked), TimerColor)
 		Ticked = Ticked - 1
-		if USSR.HasNoRequiredUnits() and BadGuy.HasNoRequiredUnits() then
+		if USSR.HasNoRequiredUnits() and BadGuy.HasNoRequiredUnits() and Turkey.HasNoRequiredUnits() then
 			Ticked = 0
 		end
 	elseif Ticked == 0 then
@@ -377,6 +395,7 @@ WorldLoaded = function()
 	Greece = Player.GetPlayer("Greece")
 	USSR = Player.GetPlayer("USSR")
 	BadGuy = Player.GetPlayer("BadGuy")
+	Turkey = Player.GetPlayer("Turkey")
 	England = Player.GetPlayer("England")
 	Neutral = Player.GetPlayer("Neutral")
 

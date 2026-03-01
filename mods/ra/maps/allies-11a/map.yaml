@@ -29,20 +29,20 @@ Players:
 		Bot: campaign
 		Faction: soviet
 		Color: FE1100
-		Allies: BadGuy, EvildGuy
+		Allies: BadGuy, Turkey
 		Enemies: England, Greece
 	PlayerReference@BadGuy:
 		Name: BadGuy
 		Bot: campaign
 		Faction: soviet
 		Color: FE1100
-		Allies: USSR, EvildGuy
+		Allies: USSR, Turkey
 		Enemies: England, Greece
-	PlayerReference@EvilGuy:
-		Name: EvilGuy
+	PlayerReference@Turkey:
+		Name: Turkey
 		Bot: campaign
 		Faction: soviet
-		Color: FE1100
+		Color: D2997D
 		Allies: USSR
 		Enemies: England, Greece
 	PlayerReference@England:
@@ -51,7 +51,7 @@ Players:
 		Faction: allies
 		Color: A1EF8C
 		Allies: Greece
-		Enemies: USSR, BadGuy, EvilGuy
+		Enemies: USSR, BadGuy, Turkey
 	PlayerReference@Greece:
 		Name: Greece
 		AllowBots: False
@@ -64,201 +64,201 @@ Players:
 		LockSpawn: True
 		LockTeam: True
 		Allies: England
-		Enemies: USSR, BadGuy, EvilGuy
+		Enemies: USSR, BadGuy, Turkey
 
 Actors:
 	Actor0: fenc
 		Location: 36,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor1: fenc
 		Location: 37,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor2: fenc
 		Location: 38,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor3: fenc
 		Location: 39,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor4: fenc
 		Location: 40,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor5: fenc
 		Location: 41,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor6: fenc
 		Location: 42,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor7: fenc
 		Location: 43,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor8: fenc
 		Location: 44,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor9: fenc
 		Location: 45,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor10: fenc
 		Location: 46,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor11: fenc
 		Location: 47,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor12: fenc
 		Location: 48,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor13: fenc
 		Location: 49,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor14: fenc
 		Location: 50,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor15: fenc
 		Location: 51,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor16: fenc
 		Location: 52,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor17: fenc
 		Location: 53,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor18: fenc
 		Location: 54,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor19: fenc
 		Location: 55,19
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor20: fenc
 		Location: 36,20
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor21: fenc
 		Location: 55,20
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor22: fenc
 		Location: 36,21
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor23: fenc
 		Location: 55,21
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor24: fenc
 		Location: 36,22
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor25: fenc
 		Location: 55,22
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor26: fenc
 		Location: 36,23
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor27: fenc
 		Location: 54,23
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor28: fenc
 		Location: 55,23
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor29: fenc
 		Location: 36,24
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor30: fenc
 		Location: 54,24
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor31: fenc
 		Location: 55,24
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor32: fenc
 		Location: 36,25
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor33: fenc
 		Location: 36,26
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor34: fenc
 		Location: 36,27
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor35: fenc
 		Location: 36,28
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor36: fenc
 		Location: 54,28
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor37: fenc
 		Location: 55,28
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor38: fenc
 		Location: 36,29
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor39: fenc
 		Location: 54,29
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor41: fenc
 		Location: 36,30
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor42: fenc
 		Location: 55,30
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor43: fenc
 		Location: 36,31
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor44: fenc
 		Location: 55,31
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor45: fenc
 		Location: 36,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor46: fenc
 		Location: 37,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor47: fenc
 		Location: 38,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor48: fenc
 		Location: 39,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor49: fenc
 		Location: 40,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor50: fenc
 		Location: 41,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor51: fenc
 		Location: 42,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor52: fenc
 		Location: 43,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor53: fenc
 		Location: 44,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor54: fenc
 		Location: 45,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor55: fenc
 		Location: 46,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor56: fenc
 		Location: 47,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor57: fenc
 		Location: 48,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor58: fenc
 		Location: 49,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor59: fenc
 		Location: 50,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor60: fenc
 		Location: 51,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor61: fenc
 		Location: 52,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor62: fenc
 		Location: 53,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor63: fenc
 		Location: 54,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor64: fenc
 		Location: 55,32
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor65: brik
 		Location: 55,37
 		Owner: USSR
@@ -1114,66 +1114,66 @@ Actors:
 		Owner: Neutral
 	IslandTsla1: tsla
 		Location: 68,47
-		Owner: EvilGuy
+		Owner: Turkey
 	IslandTsla2: tsla
 		Location: 69,48
-		Owner: EvilGuy
+		Owner: Turkey
 	IslandTsla3: tsla
 		Location: 70,49
-		Owner: EvilGuy
+		Owner: Turkey
 	IslandTsla4: tsla
 		Location: 77,49
-		Owner: EvilGuy
+		Owner: Turkey
 	IslandTsla5: tsla
 		Location: 78,48
-		Owner: EvilGuy
+		Owner: Turkey
 	IslandTsla6: tsla
 		Location: 79,47
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutPower1: apwr
 		Location: 39,22
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutPower2: apwr
 		Location: 39,27
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutPower3: apwr
 		Location: 42,25
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutPower4: apwr
 		Location: 44,22
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutPower5: apwr
 		Location: 44,28
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutPower6: apwr
 		Location: 47,24
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutPower7: apwr
 		Location: 50,22
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutPower8: apwr
 		Location: 50,27
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutSam1: sam
 		Location: 37,22
 		Facing: 384
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutSam2: sam
 		Location: 37,31
 		Facing: 512
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutSam3: sam
 		Location: 45,31
 		Facing: 512
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutSam4: sam
 		Location: 53,31
 		Facing: 512
-		Owner: EvilGuy
+		Owner: Turkey
 	BGOutSam5: sam
 		Location: 53,22
 		Facing: 768
-		Owner: EvilGuy
+		Owner: Turkey
 	USSRStek: stek
 		Location: 48,42
 		Owner: USSR
@@ -1259,10 +1259,12 @@ Actors:
 		Location: 60,58
 		Owner: USSR
 		Facing: 512
+		Stance: Defend
 	mmth2: 4tnk
 		Location: 61,59
 		Owner: USSR
 		Facing: 512
+		Stance: Defend
 	MCVDst3: waypoint
 		Owner: Neutral
 		Location: 25,100
@@ -1324,15 +1326,15 @@ Actors:
 	IslandSam1: sam
 		Location: 70,47
 		Facing: 384
-		Owner: EvilGuy
+		Owner: Turkey
 	IslandSam2: sam
 		Location: 73,47
 		Facing: 512
-		Owner: EvilGuy
+		Owner: Turkey
 	IslandSam3: sam
 		Location: 76,47
 		Facing: 640
-		Owner: EvilGuy
+		Owner: Turkey
 	Actor254: tc01
 		Owner: Neutral
 		Location: 58,30

@@ -42,20 +42,20 @@ TL;DR
 - Change top power plants and island fortifications to new player (not USSR and not BadGuy)
 ]]
 
----@class Reinforcement
+---@class reinforcement
 ---@field actors string[]
 ---@field entryPath cpos[]
 
----@type Reinforcement
+---@type reinforcement
 Mcv1Reinforcements = { actors = { "mcv" }, entryPath = { MCVEntry1.Location, MCVDst1.Location } }
 Mcv2Reinforcements = { actors = { "mcv" }, entryPath = { MCVEntry2.Location, MCVDst2.Location } }
 Mcv3Reinforcements = { actors = { "mcv" }, entryPath = { MCVEntry3.Location, MCVDst3.Location } }
 
----@type Reinforcement
+---@type reinforcement
 Sea1Reinforcements = { actors = { "pt", "pt", "dd", "dd" }, entryPath = { EnglandLeftEntry.Location } }
 Sea2Reinforcements = { actors = { "pt", "pt", "dd", "dd" }, entryPath = { EnglandRightEntry.Location } }
 
----@type Reinforcement
+---@type reinforcement
 Sea3Reinforcements = { actors = { "ca" }, entryPath = { EnglandLeftEntry.Location } }
 Sea4Reinforcements = { actors = { "ca" }, entryPath = { EnglandRightEntry.Location } }
 
@@ -89,25 +89,37 @@ EdgeOfRiverTriggerActivator =
 	CPos.New(96,20), CPos.New(97,20), CPos.New(98,20), CPos.New(99,20), CPos.New(100,20), CPos.New(101,20)
 }
 
-------------------------------
------- BADGUY ALERT	----------
-------------------------------
+--TimerTicks = DateTime.Minutes(72)
+BadGuyAlerted = false
+USSRAlerted = false
+
+FcomDiscovered = false
+
+------------------------------------
+------ BADGUY ALERT	START ----------
+------------------------------------
 -- BadGuy AI can be initiated by:
 -- - Dealing damage to any building (includes "brik")
 -- - Player has land units or structures on the east side of the map
 -- - X time has passed
 -- - USSR player is defeated
 
+AlertUSSR = function()
+	if USSRAlerted then
+		return
+	end
+	USSRAlerted = true
 
-BadGuyAlerted = false
+	RunUSSRActivities()
+end
 
 AlertBadGuy = function()
 	if BadGuyAlerted then
 		return
 	end
 	BadGuyAlerted = true
-	--RunBadGuyActivities()
-	-- TODO add actual events
+
+	RunBadGuyActivities()
 end
 
 ---@param a actor
@@ -148,7 +160,6 @@ CreateZoneTriggers = function(action)
 			if actor.Owner ~= Greece or not actor.HasProperty("Health") or actor.CenterPosition.Z > 0 or IsNaval(actor) then
 				return
 			end
-			Media.Debug("2")
 			Utils.Do(triggers, Trigger.RemoveProximityTrigger)
 			action()
 		end)
@@ -157,13 +168,23 @@ CreateZoneTriggers = function(action)
 	end)
 end
 
-------------------------------
------- BADGUY ALERT	----------
-------------------------------
+------------------------------------
+------ BADGUY ALERT	END		--------
+------------------------------------
 
 InitialSovietPatrols = function()
-	mmth1.Patrol(MmthPatrolPath, true, DateTime.Seconds(12))
-	mmth2.Patrol(MmthPatrolPath, true, DateTime.Seconds(12))
+	local mmt_patrol = { mmth1, mmth2 }
+
+	Utils.Do(mmt_patrol, function(t)
+		mmth1.Patrol(MmthPatrolPath, true, DateTime.Seconds(12))
+		mmth2.Patrol(MmthPatrolPath, true, DateTime.Seconds(12))
+	end)
+
+	OnAnyDamaged(mmt_patrol, function(victim, attacker)
+		if victim.Health < victim.MaxHealth * 0.75 and attacker.Owner == Greece then
+			AlertUSSR()
+		end
+	end)
 end
 
 InitialAlliedReinforcements = function()
@@ -225,6 +246,7 @@ TimerExpiredSendCruisers = function()
 				left_ca.Move(wp)
 			end)
 			Trigger.OnKilled(left_ca, function()
+				Media.PlaySpeechNotification(Greece, "AlliedForcesFallen")
 				USSR.MarkCompletedObjective(USSRObj)
 			end)
 		end)
@@ -234,6 +256,7 @@ TimerExpiredSendCruisers = function()
 				right_ca.Move(wp)
 			end)
 			Trigger.OnKilled(right_ca, function()
+				Media.PlaySpeechNotification(Greece, "AlliedForcesFallen")
 				USSR.MarkCompletedObjective(USSRObj)
 			end)
 		end)
@@ -251,43 +274,14 @@ TimerExpiredSendCruisers = function()
 	end)
 end
 
-local function PrepareObjectives()
-
-
-	Trigger.OnKilledOrCaptured(ForwardCommand, function()
-		-- Ensure an objective since it is possible to bypass the OnDiscovered.
-		DestroyCommandCenter = DestroyCommandCenter or Greece.AddSecondaryObjective(UserInterface.GetFluentMessage("destroy-center-submarine-reinforcements"))
-		Greece.MarkCompletedObjective(DestroyCommandCenter)
-	end)
-
-
-
-	Trigger.OnAllKilled({ Cruiser1, Cruiser2 }, function()
-		if Greece.IsObjectiveCompleted(ClearNavalChannel) then
-			return
-		end
-
-		Media.PlaySpeechNotification(Greece, "AlliedForcesFallen")
-
-		Trigger.AfterDelay(DateTime.Seconds(2), function()
-			Greece.MarkFailedObjective(ClearNavalChannel)
-		end)
-	end)
-end
-
 EnglandNavy = function()
-	Trigger.OnEnteredFootprint({ EnglandExit1.Location, EnglandExit2.Location }, function(actor)
+	Trigger.OnEnteredFootprint({ EnglandLeftExit.Location, EnglandRightExit.Location }, function(actor)
 		if actor.Type ~= "ca" then
 			return
 		end
 
 		Greece.MarkCompletedObjective(ClearNavalChannel)
 	end)
-end
-
-InitiateBadGuy = function()
-	InsertBlueprints(BadGuyBaseBlueprints, BadGuyBaseExtraBlueprints)
-	BuildBase(BadGuyBaseBlueprints, BadGuyFact, BadGuy)
 end
 
 FinishTimer = function()
@@ -309,6 +303,10 @@ FComLogic = function()
 			return
 		end
 
+		if FcomDiscovered == true then
+			return
+		end
+		FcomDiscovered = true
 		DestroyCommandCenter = AddSecondaryObjective(Greece, "destroy-center-submarine-reinforcements")
 	end)
 end
@@ -319,13 +317,12 @@ InitTriggers = function()
 	InitialAlliedReinforcements()
 	InitialSovietPatrols()
 
-	Trigger.AfterDelay(TimeBeforeSams, function()
-		InsertBlueprints(USSRBaseBlueprints, USSRBaseSamsBlueprints)
-	end)
-
 	PrepareBadGuyAlerts()
 	FComLogic()
 
+	Trigger.AfterDelay(AlertUSSRDelay, function()
+		AlertUSSR()
+	end)
 end
 
 PrepareObjectives = function()
@@ -345,13 +342,19 @@ PrepareObjectives = function()
 			Media.PlaySpeechNotification(USSR, "MissionAccomplished")
 		end)
 	end)
+
+	Trigger.OnKilledOrCaptured(BGFcom, function()
+		-- Ensure an objective since it is possible to bypass the OnDiscovered.
+		DestroyCommandCenter = DestroyCommandCenter or Greece.AddSecondaryObjective(UserInterface.GetFluentMessage("destroy-center-submarine-reinforcements"))
+		Greece.MarkCompletedObjective(DestroyCommandCenter)
+	end)
+
 end
 
-TimerTicks = DateTime.Minutes(1)
-Ticked = TimerTicks
 Tick = function()
 	USSR.Cash = 5000
 	BadGuy.Cash = 10000
+
 	if Greece.HasNoRequiredUnits() then
 		USSR.MarkCompletedObjective(USSRObj)
 	end
@@ -385,5 +388,6 @@ WorldLoaded = function()
 		SetupAIActivities()
 	end)
 
+	Ticked = TimerTicks
 	TimerColor = Greece.Color
 end

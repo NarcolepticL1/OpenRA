@@ -27,6 +27,13 @@
 
 DebugMsgEnabled = true
 
+--For Debug
+D = function(msg)
+	if DebugMsgEnabled then
+		Media.Debug(tostring(msg))
+	end
+end
+
 SetDifficulty = function()
     if Difficulty == "easy" then
         StartingCash = 7000
@@ -36,10 +43,9 @@ SetDifficulty = function()
 
 		OnlyOneMCV = false
 
-		TimerTicks = DateTime.Minutes(90)
+		TimerTicks = DateTime.Minutes(60)
 
-		TimeBeforeSams = DateTime.Minutes(10)
-
+		AlertUSSRDelay = DateTime.Minutes(8)
 
 		AtkProductionInterval = DateTime.Seconds(60)
 
@@ -48,6 +54,9 @@ SetDifficulty = function()
 		Blk1Units3 = { "4tnk", "v2rl" }
 		Blk1Units4 = { "4tnk", "v2rl" }
 		Blk1Units5 = { "e4", "e4", "e4", "e4" }
+
+		Periodic1Units = { "3tnk" }
+
 
 
     elseif Difficulty == "normal" then
@@ -58,9 +67,9 @@ SetDifficulty = function()
 
 		OnlyOneMCV = false
 
-		TimerTicks = DateTime.Minutes(72)
+		TimerTicks = DateTime.Minutes(60)
 
-		TimeBeforeSams = DateTime.Minutes(7)
+		AlertUSSRDelay = DateTime.Minutes(6)
 
 		AtkProductionInterval = DateTime.Seconds(40)
 
@@ -69,6 +78,8 @@ SetDifficulty = function()
 		Blk1Units3 = { "4tnk", "v2rl", "v2rl" }
 		Blk1Units4 = { "4tnk", "v2rl", "v2rl" }
 		Blk1Units5 = { "e4", "e4", "e4", "e4", "e4" }
+
+		Periodic1Units = { "4tnk" }
 
     elseif Difficulty == "hard" then
 		StartingCash = 5000
@@ -80,7 +91,7 @@ SetDifficulty = function()
 
 		TimerTicks = DateTime.Minutes(60)
 
-		TimeBeforeSams = DateTime.Minutes(5)
+		AlertUSSRDelay = DateTime.Minutes(5)
 
 		AtkProductionInterval = DateTime.Seconds(20)
 
@@ -102,76 +113,47 @@ end
 --------------------------------------------------------------------
 local function ______DATA______() end
 
-Periodic1Units = 
-{
-	hard = { "4tnk", "4tnk" },
-	normal = { "4tnk" },
-	easy = { "3tnk" }
-}
-
-Periodic2Units = 
-{
+Periodic2Units = {
 	hard = { "e4", "e4", "e4", "e4", "e1", "e1", "e1", "e2", "e2"  },
 	normal = { "e4", "e4", "e4", "e1", "e1", "e2", "e2" },
 	easy = { "e4", "e4", "e1", "e1", "e2" }
 }
 
-Periodic3Units = 
-{
+Periodic3Units = {
 	hard = { "4tnk", "4tnk", "v2rl", "v2rl" },
 	normal = { "4tnk", "v2rl", "v2rl" },
 	easy = { "4tnk", "v2rl" }
 }
 
-Periodic4Units = 
-{
+Periodic4Units = {
 	hard = { "v2rl", "v2rl", "v2rl" },
 	normal = { "v2rl", "v2rl" },
 	easy = { "v2rl" }
 }
 
-BadguyPeriodic1Units = 
-{
+BadguyPeriodic1Units = {
 	hard = { "e2", "e2", "e2", "e4", "e4", "e4" },
 	normal = { "e2", "e2", "e2", "e4", "e4" },
 	easy = { "e2", "e2", "e2", "e4" }
 }
 
-BadguyPeriodic2Units = 
-{
+BadguyPeriodic2Units = {
 	hard = { "e1", "e1", "e2", "e2", "e2", "e2" },
 	normal = { "e1", "e1", "e2", "e2", "e2" },
 	easy = { "e1", "e1", "e2", "e2" }
 }
 
-BadguyPeriodic3Units = 
-{
+BadguyPeriodic3Units = {
 	hard = { "3tnk","3tnk", "v2rl", "v2rl" },
 	normal = { "3tnk", "v2rl", "v2rl" },
 	easy = { "3tnk", "v2rl" }
 }
 
-BadguyPeriodic4Units = 
-{ hard =
-{ "3tnk", "3tnk", "3tnk", "3tnk" }, 
-normal =
-{ "3tnk", "3tnk", "3tnk" }, 
-easy =
-{ "3tnk", "3tnk" } }
-
-Blk1UnitsGroup = { }
-Blk2UnitsGroup = { }
-Blk3UnitsGroup = { }
-Blk4UnitsGroup = { }
-Blk5UnitsGroup = { }
-Periodic1UnitsGroup = { }
-Periodic2UnitsGroup = { }
-Periodic3UnitsGroup = { }
-Periodic4UnitsGroup = { }
-BadguyPeriodic1UnitsGroup = { }
-BadguyPeriodic2UnitsGroup = { }
-BadguyPeriodic3UnitsGroup = { }
-BadguyPeriodic4UnitsGroup = { }
+BadguyPeriodic4Units = { 
+	hard = { "3tnk", "3tnk", "3tnk", "3tnk" },
+	normal = { "3tnk", "3tnk", "3tnk" },
+	easy = { "3tnk", "3tnk" }
+}
 
 AirGroup1 = { "yak" }
 AirGroup2 = { "yak", "yak" }
@@ -200,7 +182,7 @@ USSRBaseBlueprints =
 
 	{ type = "proc", actor = USSRProc, cost = 1400, shape = { 3, 4 }, location = CPos.New(41, 42) },
 
-	{ type = "barr", actor = USSRBarr, cost = 500, shape = { 2, 3 }, location = CPos.New(46, 45), owner = USSR, produce = "a" },
+	{ type = "barr", actor = USSRBarr, cost = 500, shape = { 2, 3 }, location = CPos.New(46, 45), owner = USSR, producer = true },
 	{ type = "weap", actor = USSRWeap, cost = 2000, shape = { 3, 3 }, location = CPos.New(51, 45)  },
 	{ type = "kenn", actor = USSRKenn, cost = 200, shape = { 1, 1 }, location = CPos.New(57, 45) },
 	{ type = "spen", actor = USSRSpen, cost = 800, shape = { 3, 3 }, location = CPos.New(62, 50) },
@@ -245,16 +227,16 @@ BadGuyBaseExtraBlueprints =
 
 	{ type = "proc", actor = BGProc, cost = 1400, shape = { 3, 4 }, location = CPos.New(100, 55) },
 
-	{ type = "barr", actor = BGBarr, cost = 500, shape = { 2, 3 }, location = CPos.New(95, 50) },
-	{ type = "weap", actor = BGWeap, cost = 2000, shape = { 3, 3 }, location = CPos.New(92, 55) },
-
+	{ type = "ftur", actor = BGFtur1, cost = 600, shape = { 1, 1 }, location = CPos.New(96, 60) },
+	{ type = "ftur", actor = BGFtur2, cost = 600, shape = { 1, 1 }, location = CPos.New(100, 60) },
 	{ type = "dome", actor = BGDome, cost = 1400, shape = { 2, 3 }, location = CPos.New(93, 51) }, --Added dome for BadGuy's "v2rl" prerequisite
+
+	{ type = "barr", actor = BGBarr, cost = 500, shape = { 2, 3 }, location = CPos.New(95, 50), owner = BadGuy, producer = true },
+	{ type = "weap", actor = BGWeap, cost = 2000, shape = { 3, 3 }, location = CPos.New(92, 55), owner = BadGuy, producer = true },
 
 	{ type = "afld", actor = BGAfld1, cost = 500, shape = { 3, 2 }, location = CPos.New(88, 54) },
 	{ type = "afld", actor = BGAfld2, cost = 500, shape = { 3, 2 }, location = CPos.New(88, 56) },
 
-	{ type = "ftur", actor = BGFtur1, cost = 600, shape = { 1, 1 }, location = CPos.New(96, 60) },
-	{ type = "ftur", actor = BGFtur2, cost = 600, shape = { 1, 1 }, location = CPos.New(100, 60) },
     { type = "tsla", actor = BGTesla1, cost = 1200, shape = { 1, 1 }, location = CPos.New(98, 58) },
     { type = "tsla", actor = BGTesla2, cost = 1200, shape = { 1, 1 }, location = CPos.New(97, 50) },
 
@@ -266,13 +248,12 @@ BadGuyBaseExtraBlueprints =
 
 --@type { interval: number, types: string[], path: cpos[], owner: player, onWaveDefeated: fun() }[]
 ---@type airWave[]
-SovietAirTeams =
-{
-	{ types = { "yak", "yak" }, interval = DateTime.Seconds(120), path = { SovietAircraftOrigin1.Location }, owner = USSR},
+SovietAirTeams = {
+	{ types = { "yak" }, interval = DateTime.Seconds(120), path = { SovietAircraftOrigin1.Location }, owner = USSR},
 	{ types = { "yak", "yak" }, interval = DateTime.Seconds(110), path = { SovietAircraftOrigin1.Location }},
-	{ types = { "yak", "mig" }, interval = DateTime.Seconds(110), path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1.Location + CVec.New(-1, 0) }	},
-	{ types = { "yak", "yak", "yak" }, interval = DateTime.Seconds(219),  path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1.Location + CVec.New(-1, 0) } },
-	{ types = { "yak", "yak", "mig" }, interval = DateTime.Seconds(210), path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1	.Location + CVec.New(-1, 0) } }
+	{ types = { "mig", "mig" }, interval = DateTime.Seconds(110), path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1.Location + CVec.New(-1, 0) }	},
+	{ types = { "mig", "mig", "yak" }, interval = DateTime.Seconds(219),  path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1.Location + CVec.New(-1, 0) } },
+	{ types = { "mig", "mig", "mig", "yak", "yak", "yak", "yak" }, interval = DateTime.Seconds(210), path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1	.Location + CVec.New(-1, 0) } }
 }
 
 --------------------------------------------------------------------
@@ -310,61 +291,6 @@ InsertBlueprints = function(blueprints, insert)
     end)
 end
 
----@param type string
---@param producer actor
----@param owner player
-BuildingAvailabilityCheck = function(type, owner)
-	--if producer == nil then
-	--	if 
-	--		return true
-	--	else
-	--		return false
-	--end
-	
-	--[[
-	if not producer.IsDead or producer.Owner == owner then
-		return true
-	else
-		return false
-	end
-	]]
-
-	if owner.GetActorsByType(type) > 0 --[[or producer.Owner == owner]] then
-		return true
-	else
-		return false
-	end
-end
-
-
-
---Once a building is rebuilt, checks what type of producer building it is and starts unit production
----@param producer actor
----@param owner player
-ProductionCheck = function(producer, owner)
-		--Media.Debug("Entered")
-		--ProduceInfantry(producer, owner)
-	--end
---[[
-	--end
-	if actorType == "barr" then
-		ProduceInfantry(producer, owner)
-	elseif actorType == "weap"  then
-		ProduceArmor()
-	elseif actorType == "spen" then
-		--ProduceShips()
-	elseif actorType == "afld" then
-		ProduceAircraft()
-	end
-]]
-end
-
---For Debug
-D = function(msg)
-	if DebugMsgEnabled then
-		Media.Debug(tostring(msg))
-	end
-end
 --------------------------------------------------------------------
 -----------------	UTILS BLOCK - END	----------------------------
 --------------------------------------------------------------------
@@ -402,7 +328,7 @@ BuildBlueprint = function(blueprints, blueprint, cyard, owner)
 		end
 
 		if IsBuildAreaBlocked(owner, blueprint) then
-			Trigger.AfterDelay(DateTime.Seconds(2--[[5]]), function()
+			Trigger.AfterDelay(DateTime.Seconds(5), function()
 				BuildBlueprint(blueprints, blueprint, cyard, owner)
 			end)
 			return
@@ -410,7 +336,7 @@ BuildBlueprint = function(blueprints, blueprint, cyard, owner)
 
 		local actor = Actor.Create(blueprint.type, true, { Owner = owner, Location = blueprint.location })
 		OnBlueprintBuilt(actor, blueprint, owner)
-		Trigger.AfterDelay(DateTime.Seconds(1--[[10]]), function()
+		Trigger.AfterDelay(DateTime.Seconds(10), function()
 			BuildBase(blueprints, cyard, owner)
 		end)
 	end)
@@ -424,62 +350,29 @@ OnBlueprintBuilt = function(actor, blueprint, owner)
 	blueprint.actor = actor
 	MaintainBuilding(actor, blueprint, 0.75)
 
-
 	Trigger.AfterDelay(1, function()
-		D(blueprint.type)
 		if blueprint.type ~= "barr" and blueprint.type ~= "weap" and blueprint.type ~= "afld" and blueprint.type ~= "spen" then
 			return
 		end
 
---NW 61, 29
---SE 105, 103
-
 		if blueprint.type == "barr" then
 			ProduceInfantry(actor, owner)
 		elseif blueprint.type == "weap" then
-			ProduceWeap(actor, owner)
+			D("ProduceArmor")
+			ProduceArmor(actor, owner)
 		elseif blueprint.type == "weap" then
 			ProduceAircraft(actor, owner)
 		elseif blueprint.type == "weap" then
 			ProduceSubs(actor, owner)
 		end
-		--[[
-		Media.Debug(tostring(actor))
-		Media.Debug(tostring(blueprint.actor))
-		Media.Debug(tostring(blueprint.type))
-		Media.Debug(tostring(blueprint.produce))
-		if blueprint.produce then
-			Media.Debug("Here?")
-			ProductionCheck(actor, owner)
-			]]
-			--[[
-			Trigger.AfterDelay(DateTime.Seconds(1), function()
-				actor.Kill()
-			end)
-			-- Build() will not work properly on producers if immediately called.
-			Trigger.AfterDelay(1, function()
-				Trigger.OnBuildingPlaced(owner, function(p, a)
-					if a.Type == "barr" then
-						Media.Debug("ProduceInfantry")
-					elseif a.Type == "weap" then
-						Media.Debug("ProduceArmor")
-					elseif a.Type == "afld" then
-						Media.Debug("ProduceAircraft")
-					elseif a.Type == "afld" then
-						Media.Debug("ProduceSubs")
-					elseif a.Type ~= "barr" or a.Type ~= "weap" or a.Type ~= "afld" or a.Type ~= "spen" then
-						Media.Debug("No production")
-					end
-				end)
-				blueprint.onBuilt(actor)
-			end)]]
 	end)
 end
 
 ---@param blueprint blueprint
 ---@param owner player
 IsBuildAreaBlocked = function(owner, blueprint)
-	local nw, se = blueprint.northwestEdge, blueprint.southeastEdge
+	local nw = blueprint.northwestEdge --[[@as wpos]]
+	local se = blueprint.southeastEdge --[[@as wpos]]
 	local blockers = Map.ActorsInBox(nw, se, function(actor)
 		-- Neutral check is for ignoring trees near the refinery.
 		return actor.Owner ~= Neutral and actor.CenterPosition.Z == 0 and actor.HasProperty("Health")
@@ -648,12 +541,13 @@ end
 -----------------------
 local function __ARMOR_ATTACKS__() end
 
-VehicleTypes = { "3tnk", "4tnk", "v2rl"}
+VehicleTypes = { "3tnk", "3tnk", "3tnk", "v2rl", "v2rl" }
 
 VehicleAttackGroup = {}
 
 VehicleAttackGroupSize = 5
 
+-- This is the regular func() to create attacks
 ---@param producer actor
 ---@param owner player
 ProduceArmor = function(producer, owner)
@@ -686,75 +580,10 @@ ProduceArmor = function(producer, owner)
 	end)
 end
 
-ProduceSovietPeriodic1Units = function()
-	if USSRWeap.IsDead or USSRWeap.Owner ~= USSR then
-		ProduceSovietPeriodic2Units()
-	elseif USSRWeap.IsDead or USSRWeap.Owner ~= USSR and USSRBarr.IsDead or USSRBarr.Owner ~= USSR then
-		return
-	end
-	USSR.Build({ Periodic1Units[#Periodic1UnitsGroup+1] }, function(units)
-		table.insert(Periodic1UnitsGroup, units[1])
-		if #Periodic1UnitsGroup < #Periodic1Units then
-			Trigger.AfterDelay(AtkProductionInterval, ProduceSovietPeriodic1Units)
-		else
-			SendPeriodic1UnitsAttackGroup()
-			Trigger.AfterDelay(AtkProductionInterval, ProduceSovietPeriodic2Units)
-		end
-	end)
-end
+-- This is the func() to produce units to defend the shoreline
+ProduceBlockers = function()
 
---[[
-ProduceSovietPeriodic2Units = function()
-	if USSRBarr.IsDead or USSRBarr.Owner ~= USSR then
-		ProduceSovietPeriodic3Units()
-	elseif USSRWeap.IsDead or USSRWeap.Owner ~= USSR and USSRBarr.IsDead or USSRBarr.Owner ~= USSR then
-		return
-	end
-	USSR.Build({ Periodic2Units[#Periodic2UnitsGroup+1] }, function(units)
-		table.insert(Periodic2UnitsGroup, units[1])
-		if #Periodic2UnitsGroup < #Periodic2Units then
-			Trigger.AfterDelay(AtkProductionInterval, ProduceSovietPeriodic2Units)
-		else
-			SendPeriodic2UnitsAttackGroup()
-			Trigger.AfterDelay(AtkProductionInterval, ProduceSovietPeriodic3Units)
-		end
-	end)
 end
-
-ProduceSovietPeriodic3Units = function()
-	if USSRWeap.IsDead or USSRWeap.Owner ~= USSR then
-		ProduceSovietPeriodic2Units()
-	elseif USSRWeap.IsDead or USSRWeap.Owner ~= USSR and USSRBarr.IsDead or USSRBarr.Owner ~= USSR then
-		return
-	end
-	USSR.Build({ Periodic3Units[#Periodic3UnitsGroup+1] }, function(units)
-		table.insert(Periodic3UnitsGroup, units[1])
-		if #Periodic3UnitsGroup < #Periodic3Units then
-			Trigger.AfterDelay(AtkProductionInterval, ProduceSovietPeriodic3Units)
-		else
-			SendPeriodic3UnitsAttackGroup()
-			Trigger.AfterDelay(AtkProductionInterval, ProduceSovietPeriodic4Units)
-		end
-	end)
-end
-
-ProduceSovietPeriodic4Units = function()
-	if USSRWeap.IsDead or USSRWeap.Owner ~= USSR then
-		ProduceSovietPeriodic2Units()
-	elseif USSRWeap.IsDead or USSRWeap.Owner ~= USSR and USSRBarr.IsDead or USSRBarr.Owner ~= USSR then
-		return
-	end
-	USSR.Build({ Periodic4Units[#Periodic4UnitsGroup+1] }, function(units)
-		table.insert(Periodic4UnitsGroup, units[1])
-		if #Periodic4UnitsGroup < #Periodic4Units then
-			Trigger.AfterDelay(AtkProductionInterval, ProduceSovietPeriodic4Units)
-		else
-			SendPeriodic4UnitsAttackGroup()
-			Trigger.AfterDelay(AtkProductionInterval, ProduceSovietPeriodic1Units)
-		end
-	end)
-end
-]]
 
 -----------------------
 --- Air Attacks     ---
@@ -799,7 +628,10 @@ SendRenAirstrike = function(unit, route)
 end
 
 BasePlanes = {}
-TotalAflds = 1
+TotalAflds = 4
+
+AircraftTypes = { "yak", "mig" }
+PlanesAttackGroup = { }
 
 ---@param owner player
 AfldAvailableCheck = function(producer, owner)
@@ -837,6 +669,8 @@ ProduceAircraft = function(producer, owner)
 end
 
 --Out of map attacks
+--Disabled for now
+--[[
 SendParabombs = function()
 	if BaseAfld.IsDead or BaseAfld.Owner ~= USSR then
 		return
@@ -872,6 +706,7 @@ SendParadrop = function()
 	end)
 	Trigger.AfterDelay(ParadropDelay, SendParadrop)
 end
+]]
 
 CurrentAirWave = 1
 
@@ -907,7 +742,7 @@ ScheduleAirWave = function(wave)
 			InitializeAttackAircraft(unit, Greece)
 
 			Trigger.OnIdle(unit, function()
-				if unit.AmmoCount() > 0 --[[or HasAirfield(unit.Owner)]] then -- #BasePlanes < TotalAflds
+				if unit.AmmoCount() > 0 then
 					table.insert(BasePlanes, unit)
 					return
 				elseif HasAirfield(unit.Owner) and #BasePlanes < TotalAflds then
@@ -934,11 +769,12 @@ ScheduleAirWave = function(wave)
 	end)
 end
 
----@param aircraft Actor
----@param exit CPos
+---@param aircraft actor
+---@param exit cpos
 OnAircraftStranded = function(aircraft, exit)
 	--Media.Debug("Stranded check")
 	local oldOwner = aircraft.Owner
+	-- Re-enable this
 	--[[
 	if oldOwner == USSR and HasAirfield(BadGuy) then
 		aircraft.Owner = BadGuy
@@ -975,7 +811,7 @@ NavalAtkPath = { }
 ---@param producer actor
 ---@param owner player
 ProduceSubs = function(producer, owner)
-	if not SpenAvailableCheck(producer, owner) then
+	if not ProducerAvailableCheck(producer, owner) then
 		return
 	end
 
@@ -998,20 +834,79 @@ ProduceSubs = function(producer, owner)
 	end)
 end
 
+EnemySubsReinforcements = function()
+    if BGFcom.IsDead then
+		return
+	end
+
+	local northLeftEdge = WPos.New( (CPos.New(61,29)).X * 1024,  (CPos.New(61,29)).Y * 1024, 0)
+    local southRightEdge = WPos.New( (CPos.New(105,103)).X * 1024, (CPos.New(105,103)).Y * 1024, 0)
+
+    local actors = Map.ActorsInBox( northLeftEdge, southRightEdge, function(actor)
+		return (actor.Owner == Greece or actor.Owner == England) and ( actor.Type == "pt" or actor.Type == "dd" or actor.Type == "ca" or actor.Type == "ss" or actor.Type == "spen" or actor.Type == "syrd" or actor.Type == "lst" )
+	end)
+
+    if #actors > 0 then
+        local subsLeft = Reinforcements.Reinforce(USSR, {"ss", "ss"}, { EnglandLeftExit.Location, EnglandLeftExit.Location + CVec.New(0, 2) })
+        Trigger.AfterDelay(DateTime.Seconds(2), function()
+			Utils.Do(subsLeft, function(u)
+				if not u.IsDead then
+					u.AttackMove(WP55.Location)
+					IdleHunt(u)
+				end
+			end)
+        end)
+		local subsRight = Reinforcements.Reinforce(USSR, {"ss", "ss"}, { EnglandRightExit.Location, EnglandRightExit.Location + CVec.New(0, 2) })
+        Trigger.AfterDelay(DateTime.Seconds(2), function()
+			Utils.Do(subsRight, function(u)
+				if not u.IsDead then
+					u.AttackMove(WP63.Location)
+					IdleHunt(u)
+				end
+			end)
+		end)
+    end
+
+    Trigger.AfterDelay(DateTime.Minutes(4), function()
+        EnemySubsReinforcements()
+    end)
+end
+
 --------------------------------------------------------------------
 ----------------		ATTACKING BLOCK - END	--------------------
 --------------------------------------------------------------------
 
 SetupAIActivities = function()
-
 	BeginBaseMaintenance(USSRBaseBlueprints, USSR)
 	BeginBaseMaintenance(BadGuyBaseBlueprints, BadGuy)
 
+	Trigger.AfterDelay(DateTime.Minutes(4), function()
+		EnemySubsReinforcements()
+	end)
+
+	Trigger.AfterDelay(DateTime.Minutes(2), function()
+		PrepareAircraftReinforcements()
+	end)
+end
+
+-- Activated once USSR is alerted
+RunUSSRActivities = function ()
 	Trigger.AfterDelay(DateTime.Seconds(1), function()
 		InsertBlueprints(USSRBaseBlueprints, USSRBaseSamsBlueprints)
 		BuildBase(USSRBaseBlueprints, USSRFact, USSR)
 	end)
 
+	ProduceInfantry(USSRBarr, USSR)
+	ProduceArmor(USSRWeap, USSR)
+	--ProduceSubs(USSRSpen, USSR)
+end
+
+-- Activated once BadGuy is alerted
+RunBadGuyActivities = function ()
+	InsertBlueprints(BadGuyBaseBlueprints, BadGuyBaseExtraBlueprints)
+	BuildBase(BadGuyBaseBlueprints, BadGuyFact, BadGuy)
+
+	--[[
 	Trigger.AfterDelay(DateTime.Seconds(10), function()
 		ProduceInfantry(USSRBarr, USSR)
 	end)
@@ -1019,23 +914,5 @@ SetupAIActivities = function()
 	Trigger.AfterDelay(DateTime.Seconds(10), function()
 		ProduceArmor(USSRWeap, USSR)
 	end)
-
-	PrepareAircraftReinforcements()
-
---[[
-	Trigger.AfterDelay(DateTime.Minutes(5), ProduceSovietBlk1Vehicle)
-	Trigger.AfterDelay(DateTime.Seconds(126), function()
-		SendRenAirstrike(AirGroup1, AirGroup1Route)
-	end)
-
-	Trigger.AfterDelay(DateTime.Seconds(432), SendAirstrike)
-]]
-
-end
-
--- Activated once BadGuy if alerted
-RunBadGuyActivities = function ()
-	InsertBlueprints(BadGuyBaseBlueprints, BadGuyBaseExtraBlueprints)
-	BuildBase(BadGuyBaseBlueprints, BadGuyFact, BadGuy)
-
+	]]
 end

@@ -939,10 +939,12 @@ Actors:
 		Location: 41,52
 		Owner: USSR
 		Facing: 512
+		Stance: Defend
 	Actor342: v2rl
 		Location: 53,52
 		Owner: USSR
 		Facing: 512
+		Stance: Defend
 	Actor343: 4tnk
 		Location: 93,59
 		Owner: BadGuy
@@ -963,11 +965,6 @@ Actors:
 		Location: 25,96
 		Owner: Greece
 		SubCell: 2
-	Actor351: dog
-		Location: 41,42
-		Owner: USSR
-		SubCell: 1
-		Facing: 512
 	Actor352: dog
 		Location: 60,46
 		Owner: USSR
@@ -976,18 +973,8 @@ Actors:
 	Actor353: dog
 		Location: 60,46
 		Owner: USSR
-		Facing: 512
 		SubCell: 1
-	Actor354: dog
-		Location: 96,53
-		Owner: BadGuy
-		Facing: 256
-		SubCell: 5
-	Actor355: dog
-		Location: 99,55
-		Owner: BadGuy
 		Facing: 512
-		SubCell: 1
 	Actor356: dog
 		Location: 102,51
 		Owner: BadGuy
@@ -1313,14 +1300,6 @@ Actors:
 		SubCell: 1
 		Location: 55,42
 		Facing: 512
-	USSRProc: proc
-		Location: 41,42
-		Owner: USSR
-	Actor350: dog
-		Location: 40,42
-		Owner: USSR
-		SubCell: 2
-		Facing: 512
 	USSRPower7: apwr
 		Location: 58,42
 		Owner: USSR
@@ -1369,6 +1348,39 @@ Actors:
 	EnglandRightExit: waypoint
 		Owner: Neutral
 		Location: 92,19
+	Actor280: dog
+		Owner: USSR
+		Location: 50,50
+		SubCell: 3
+		Facing: 306
+	Actor281: dog
+		Owner: USSR
+		Location: 44,50
+		SubCell: 3
+		Facing: 722
+	Actor284: dog
+		Owner: USSR
+		SubCell: 1
+		Facing: 512
+		Location: 44,45
+	Actor283: dog
+		Owner: USSR
+		SubCell: 2
+		Facing: 512
+		Location: 40,45
+	USSRProc: proc
+		Location: 41,42
+		Owner: USSR
+	Actor282: dog
+		Owner: BadGuy
+		Facing: 512
+		SubCell: 1
+		Location: 99,57
+	Actor285: dog
+		Owner: BadGuy
+		SubCell: 5
+		Facing: 256
+		Location: 95,54
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

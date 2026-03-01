@@ -28,43 +28,8 @@ World:
 			BadGuy: 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223
 			EvilGuy: 200, 200, 201, 202, 203, 203, 204, 205, 206, 206, 207, 221, 222, 222, 223, 223
 
-# TODO Remove range testing stuff. This was for placing and testing proximities.
-^GainsExperience:
-	ExternalCondition@RANGETESTER:
-		Condition: pinged-by-tester
-	WithColoredOverlay@RANGETESTED:
-		RequiresCondition: pinged-by-tester
-
-^RangeTester:
-	WithRangeCircle:
-		Range: 10c0
-		Visible: Always 
-		Color: FF0000
-	SpeedMultiplier:
-		Modifier: 500
-	ProximityExternalCondition@RANGETESTER:
-		Condition: pinged-by-tester
-		Range: 10c0
-
-MH60:
-	Inherits@Tester: ^RangeTester
-
-HELI:
-	Inherits@Tester: ^RangeTester
-	WithRangeCircle:
-		Range: 12c0
-		Color: 00FF00
-	ProximityExternalCondition@RANGETESTER:
-		Range: 12c0
-
 FCOM:
 	AnnounceOnSeen:
-
-WEAP:
-	ProvidesPrerequisite@4TNKSTEK:
-		Prerequisite: stek
-		ResetOnOwnerChange: true
-		Factions: soviet
 
 ^Submarine:
 	MustBeDestroyed:
@@ -90,27 +55,34 @@ E4:
 
 3TNK:
 	ScriptTags:
-
-4TNK:
 	Buildable:
-		Prerequisites: stek
+		Prerequisites: ~vehicles.soviet
 
 V2RL:
 	ScriptTags:
-
-ATEK:
 	Buildable:
-		Prerequisites: ~disabled
+		Prerequisites: ~vehicles.soviet
 
-GAP:
+4TNK:
+	ScriptTags:
 	Buildable:
-		Prerequisites: ~disabled
+		Prerequisites: ~vehicles.soviet
+
+PROC:
+	InfiltrateForCash:
+		-Percentage:
+		Minimum: 0
+		Maximum: 3000
 
 QTNK:
 	Buildable:
 		Prerequisites: ~disabled
 
 MCV:
+	Buildable:
+		Prerequisites: ~disabled
+
+MSLO:
 	Buildable:
 		Prerequisites: ~disabled
 
@@ -122,7 +94,7 @@ THF:
 	Buildable:
 		Prerequisites: ~disabled
 
-TRAN:
+MECH:
 	Buildable:
 		Prerequisites: ~disabled
 

@@ -7,43 +7,62 @@
    information, see COPYING.
 ]]
 
-local StartingCash = { easy = 7000, normal = 6000, hard = 5000, arcade = 5000 }
+--------------------------------------------------------------------
+----------------    SUMMARY OF LEVEL IMPLEMENTATION	----------------
+--------------------------------------------------------------------
+--[[
+APPROACH
+First of all I tried to stick to the original level spirit more than copying verbatim triggers/events. Working on top of @yuantse and @JovialFeline code
 
+ORIGINAL VS ORA VERSION
+Again the redeployable MCV changes a few things. At the start of the level the player starts with 2 mcvs. I want to change this a bit (See BALANCE).
+
+BALANCE
+First of all the second MCV the player has would only be available on EASY. In Normal the MCV will arrive after X time. In HARD there will be no extra
+MCV. If the player wants to secure the right side, he/she must migrate there with the only MCV. 
+The closest soviet base doesn't have sams so aircrafts can do quick work of it. I think is better to give the AI (USSR) sams but these will be built after
+X time. The X amount will depend on difficulty, so, if the player is quick enough, he/she can weaken the soviet enough so they become less of a threat.
+
+
+MCV-Deploy
+Aircrafts
+Spy
+PowerPlants and island fortification 
+
+
+As mentioned before, AI will send attacks occasionally but the bulk of the AI efforts will be in protecting the base and other behaviors that make it hard
+for the VIP unit to leave the base. Among these changes
+
+OTHER
+No secondary objective yet
+
+
+TL;DR
+- Change dog locations, add a way for AI to rebuild them to defend against spies
+- Change top power plants and island fortifications to new player (not USSR and not BadGuy)
+]]
+
+local StartingCashReserves = { easy = 7000, normal = 6000, hard = 5000, arcade = 5000 }
 
 local OnlyOneMCV = { easy = false, normal = false, hard = true, challenge = true }
 
-SetDifficulty = function()
-    if Difficulty == "easy" then
+local McvReinforcements1 = { actors = { "mcv" }, entryPath = { MCVEntry1.Location, MCVDst1.Location } }
+local McvReinforcements2 = { actors = { "mcv" }, entryPath = { MCVEntry2.Location, MCVDst2.Location } }
+local McvReinforcements3 = { actors = { "mcv" }, entryPath = { MCVEntry3.Location, MCVDst3.Location } }
 
-		DateTime.TimeLimit = --[[DateTime.Minutes(120) +]] DateTime.Seconds(3)
+local EnglandLeftEarlyNavy = { actors = { "pt", "pt", "dd", "dd" }, entryPath = { EnglandLeftEntry.Location } }
+local EnglandRightEarlyNavy = { actors = { "pt", "pt", "dd", "dd" }, entryPath = { EnglandRightEntry.Location } }
+local EnglandLeftLateNavy = { actors = { "ca" }, entryPath = { EnglandLeftEntry.Location } }
+local EnglandRightLateNavy = { actors = { "ca" }, entryPath = { EnglandRightEntry.Location } }
 
-		VehicleAttackInterval = DateTime.Minutes(3)
+-- CHANGE THIS !!!!
+local SeaLeftPatrolPath = {
+EnglandLeftEntry.Location, WP52.Location, WP53.Location, WP54.Location, WP55.Location, WP56.Location, EnglandLeftDst.Location, EnglandLeftExit.Location }
+local SeaRightPatrolPath =
+{ EnglandRightEntry.Location, WP60.Location, WP61.Location, WP62.Location, WP63.Location, WP64.Location, EnglandRightDst.Location, EnglandRightExit.Location }
 
-		VehicleAttackGroupSize = 3
-
-    elseif Difficulty == "normal" then
-
-
-		DateTime.TimeLimit = --[[DateTime.Minutes(120) +]] DateTime.Seconds(3)
-
-		VehicleAttackInterval = DateTime.Minutes(2.5)
-
-		VehicleAttackGroupSize = 3
-
-    elseif Difficulty == "hard" then
-
-		DateTime.TimeLimit = --[[DateTime.Minutes(120) +]] DateTime.Seconds(3)
-
-		VehicleAttackInterval = DateTime.Minutes(2)
-
-		VehicleAttackGroupSize = 4
-	elseif Difficulty == "arcade" then
-
-	end
-end
-
-local StartingCash = { easy = 7000, normal = 6000, hard = 5000 }
-local OnlyOneMCV = { easy = false, normal = false, hard = false }
+local SentNavy = false
+local SentCruisers = false
 
 --This function is to allow usage of outliner. Remove at some point
 local function __DATA__() end
@@ -63,8 +82,8 @@ IsNaval = function(actor)
 		return actor.Type == shipType
 	end)
 end
-
----@return boolean
+--[[
+--@return boolean
 AreIslandTeslasDown = function()
 	local teslas = { IslandTsla1, IslandTsla2, IslandTsla3, IslandTsla4, IslandTsla5 }
 
@@ -72,7 +91,7 @@ AreIslandTeslasDown = function()
 		return a.IsDead
 	end)
 end
-
+]]
 ---CHANGE: For AI. Move it there
 CheckProductionBuildingReady = function()
 
@@ -255,6 +274,20 @@ OrderBlockers = function(actors, rally)
 	end
 end
 
+local InitialAlliedReinforcements = function()
+	if OnlyOneMCV == false then
+		Trigger.AfterDelay(DateTime.Seconds(1), function()
+			Media.PlaySpeechNotification(Greece, "ReinforcementsArrived")
+			Reinforcements.Reinforce(Greece, McvReinforcements1.actors, McvReinforcements1.entryPath)
+		end)
+		Trigger.AfterDelay(DateTime.Seconds(1), function()
+			Reinforcements.Reinforce(Greece, McvReinforcements2.actors, McvReinforcements2.entryPath)
+		end)
+	else
+		Reinforcements.Reinforce(Greece, McvReinforcements3.actors, McvReinforcements3.entryPath)
+	end
+end
+
 --[[
 ---@param types string[]
 ---@return actor[]|nil
@@ -393,10 +426,9 @@ end
 local function __BASE_TRIGGERS__() end
 
 InitTriggers = function()
-	Greece.Cash = InitCash
-	USSR.Cash = USSRInitCash
+	Greece.Cash = StartingCashReserves[Difficulty]
 
-	Trigger.AfterDelay(DateTime.Seconds(1), AlliedMCVArrival)
+	InitialAlliedReinforcements()
 
 	AISetup()
 
@@ -429,18 +461,14 @@ InitTriggers = function()
 end
 
 PrepareObjectives = function()
-	InitObjectives(Greece)
-
-	DenyAllies = AddPrimaryObjective(USSR, "")
-	ClearNavalChannel = AddPrimaryObjective(Greece, "clear-the-naval-channel")
-
+	--[[
 	Trigger.OnDiscovered(BGFcom, function(actor, discoverer)
 		if discoverer ~= Greece then
 			return
 		end
 		DestroyCommandCenter = AddSecondaryObjective(Greece, "destroy-center-submarine-reinforcements") 
 	end)
-
+	]]
 	Trigger.OnKilledOrCaptured(BGFcom, function()
 		-- Ensure an objective since it is possible to bypass the OnDiscovered.
 		DestroyCommandCenter = DestroyCommandCenter or Greece.AddSecondaryObjective(UserInterface.GetFluentMessage("destroy-center-submarine-reinforcements"))
@@ -468,12 +496,29 @@ PrepareObjectives = function()
 	end)
 end
 
-first_batch = {"pt", "pt", "dd"}
+PrepareObjectives = function()
+	InitObjectives(Greece)
 
+	ClearNavalChannel = Greece.AddObjective("Clear the naval channel.")
 
-SendEnglandNavy = function()
-	local first = Reinforcements.Reinforce(England, first_batch, { spawnLoc.Location, spawnLoc.Location + CVec.New(-1, 1) })
-	local cruisers = 
+	DenyAllies = AddPrimaryObjective(USSR, "Eliminate all Allied forces.")
+
+	Trigger.OnPlayerLost(Greece, function()
+		Trigger.AfterDelay(DateTime.Seconds(1), function()
+			Media.PlaySpeechNotification(USSR, "MissionFailed")
+		end)
+	end)	
+	Trigger.OnPlayerWon(Greece, function()
+		Trigger.AfterDelay(DateTime.Seconds(1), function()
+			Media.PlaySpeechNotification(USSR, "MissionAccomplished")
+		end)
+	end)
+	
+	Trigger.OnKilledOrCaptured(BGFcom, function()
+		-- Ensure an objective since it is possible to bypass the OnDiscovered.
+		DestroyCommandCenter = DestroyCommandCenter or Greece.AddSecondaryObjective(UserInterface.GetFluentMessage("destroy-center-submarine-reinforcements"))
+		Greece.MarkCompletedObjective(DestroyCommandCenter)
+	end)
 
 end
 
@@ -483,17 +528,20 @@ end
 local function __CORE_TRIGGERS__() end
 
 Tick = function()
-	if Greece.HasNoRequiredUnits() and not Greece.IsObjectiveCompleted(ClearNavalChannel) then
-		Greece.MarkFailedObjective(ClearNavalChannel)
+	if Greece.HasNoRequiredUnits() then
+		USSR.MarkCompletedObjective(USSRObj)
 	end
-
-	--if EnglandReinforced then
-	--	return
-	--end
-
-	--if USSR.HasNoRequiredUnits() and BadGuy.HasNoRequiredUnits() and AreIslandTeslasDown() and DateTime.TimeLimit > 1 then
-	--	DateTime.TimeLimit = 1
-	--end
+	if Ticked > 0 then
+		UserInterface.SetMissionText("Naval vessels arrive in " .. Utils.FormatTime(Ticked), TimerColor)
+		Ticked = Ticked - 1
+		if USSR.HasNoRequiredUnits() and BadGuy.HasNoRequiredUnits() and Turkey.HasNoRequiredUnits() then
+			Ticked = 0
+		end
+	elseif Ticked == 0 then
+		FinishTimer()
+		TimerExpiredSendNavy()
+		Ticked = Ticked - 1
+	end
 end
 
 WorldLoaded = function()
@@ -504,28 +552,15 @@ WorldLoaded = function()
 	BadGuy = Player.GetPlayer("BadGuy")
 	Turkey = Player.GetPlayer("Turkey")
 	England = Player.GetPlayer("England")
+	Neutral = Player.GetPlayer("Neutral")
 
 	InitTriggers()
 	PrepareObjectives()
 
-	--PrepareMainSubmarines()
-	--
-	--
-	--[[
-	Utils.Do(bots, function(bot)
-		local structures = Utils.Where(bot.GetActors(), function(actor)
-			return actor.HasProperty("StartBuildingRepairs") end)
-
-		Utils.Do(structures, function(structure)
-			Trigger.OnDamaged(structure, function()
-				if structure.Owner ~= bot or structure.Health > structure.MaxHealth * 0.75 then
-					return
-				end
-
-				structure.StartBuildingRepairs()
-			end)
-		end)
+	Trigger.AfterDelay(DateTime.Seconds(5), function()
+		SetupAIActivities()
 	end)
-	]]
+
+	Ticked = TimerTicks
 	TimerColor = Greece.Color
 end

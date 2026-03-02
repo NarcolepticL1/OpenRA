@@ -1,10 +1,10 @@
 World:
 	LuaScript:
-		Scripts: campaign.lua, utils.lua, allies11b.lua, allies11b-AI.lua, allies11b-reinforcements.lua
+		Scripts: campaign.lua, utils.lua, allies11b.lua, allies11b-AI.lua
 	MissionData:
 		Briefing: 
-		#StartVideo: destroyr.vqa
-		#LossVideo: shipsink.vqa
+		StartVideo: destroyr.vqa
+		LossVideo: shipsink.vqa
 		WinVideo: shorbomb.vqa
 		BriefingVideo: ally11.vqa
 	ScriptLobbyDropdown@difficulty:

@@ -31,10 +31,10 @@ local AtkProductionIntervals = { easy = DateTime.Seconds(60), normal = DateTime.
 --- Definitions End	----------
 ------------------------------
 
-------------------------------
---- Data Start	--------------
-------------------------------
-local function __DATA__() end
+--------------------------------------------------------------------
+-----------------	    DATA BLOCK - START	------------------------
+--------------------------------------------------------------------
+local function ______DATA______() end
 
 ---@type blueprint[]
 local USSRBaseBlueprints =
@@ -104,37 +104,71 @@ local BadGuyBaseExtraBlueprints =
     { type = "tsla", actor = BGTsla1, cost = 1200, shape = { 1, 1 }, location = CPos.New(95, 37) }
 }
 
-InfantryTypes = {"e1", "e2", "e4"}
-InfantryUSSRAttackGroup = { }
-InfantryBadGuyAttackGroup = { }
+---@type blueprint[]
+local TurkeyBaseBlueprints =
+{
 
-InfantryAttackGroupSize = 8
+}
 
+-------------------------
+-- Land Attacks Data   --
+-------------------------
 
-VehicleTypes = { "3tnk", "3tnk", "3tnk", "3tnk", "v2rl", "v2rl" }
-VehicleUSSRAttackGroup = { }
-VehicleBadGuyAttackGroup = { }
+local VehicleAttackInterval = { easy = DateTime.Seconds(180), normal = DateTime.Minutes(150), hard = DateTime.Minutes(120), challenge = DateTime.Minutes(120)}
 
-USSRAttackPaths =
+local USSRAttackPaths =
 {
     {MammothPatrolWP9.Location, MammothPatrolWP1.Location, MammothPatrolWP6.Location, Waypoint34.Location},
     {MammothPatrolWP9.Location, MammothPatrolWP1.Location, MammothPatrolWP4.Location, Waypoint32.Location, Waypoint33.Location}
 }
+local BadGuyAttackPaths = { {BGAttackRallyWP.Location}}
 
-BadGuyAttackPaths = { {BGAttackRallyWP.Location}}
-
-InfantryUnits = { "e1", "e2", "e4"}
+local InfantryTypes = { "e1", "e2", "e4"}
 local InfantryAttackGroup = { }
-local InfantryAttackGroupSize = 12
+local InfantryAttackGroupSizes = { easy = 6, normal = 9, hard = 12, challenge = 12 }
 
-local VehicleTypes = { "3tnk", "3tnk", "3tnk", "v2rl", "v2rl" }
+local VehicleTypes = { "3tnk", "3tnk", "3tnk", "v2rl", "v2rl", "4tnk" }
 local VehicleAttackGroup = {}
-local VehicleAttackGroupSize = 5
+local VehicleAttackGroupSizes = { easy = 2, normal = 3, hard = 4, challenge = 4} 
+
+local VehicleUSSRAttackGroup = { }
+local VehicleBadGuyAttackGroup = { }
+
+InfantryUSSRAttackGroup = { }
+InfantryBadGuyAttackGroup = { }
+
+-------------------------
+-- Naval Attacks Data  --
+-------------------------
 
 local SubTypes = { "ss"}
 local SubAttackGroup = { }
-local SubAttackGroupSize = 5
+local SubAttackGroupSize = 2
 local NavalAtkPath = { }
+
+-----------------------
+-- Air Attacks Data  --
+-----------------------
+
+local CurrentAirWave = 1
+local BasePlanes = {}
+local TotalAflds = 4 --Map dependent
+
+local AircraftTypes = { "yak", "mig" }
+local PlanesAttackGroup = { }
+
+---@type { types: string[], interval: number, path: cpos[], owner?: player }[]
+local SovietAirTeams = {
+	{ types = { "yak" }, interval = DateTime.Seconds(120), path = { SovietAircraftOrigin1.Location }, owner = USSR},
+	{ types = { "yak", "yak" }, interval = DateTime.Seconds(110), path = { SovietAircraftOrigin1.Location }},
+	{ types = { "mig", "mig" }, interval = DateTime.Seconds(110), path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1.Location + CVec.New(-1, 0) }	},
+	{ types = { "mig", "mig", "yak" }, interval = DateTime.Seconds(219),  path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1.Location + CVec.New(-1, 0) } },
+	{ types = { "mig", "mig", "mig", "yak", "yak", "yak", "yak" }, interval = DateTime.Seconds(210), path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1	.Location + CVec.New(-1, 0) } }
+}
+
+--------------------------------------------------------------------
+-----------------	    DATA BLOCK - END	------------------------
+--------------------------------------------------------------------
 
 --------------------------------------------------------------------
 -----------------	UTILS BLOCK - START	----------------------------
@@ -707,9 +741,12 @@ SetupAIActivities = function()
     USSRCashReserve = USSRCashReserves[Difficulty]
     BadGuyCashReserve = BadGuyCashReserves[Difficulty]
 
+    AtkProductionInterval = AtkProductionIntervals[Difficulty]
+
     -- For repairs
     Turkey.Cash = 5000
 
+    --Maybe this one is not necessary
     AlertUSSRDelay = AlertUSSRDelays[Difficulty]
 
     BeginBaseMaintenance(USSRBaseBlueprints, USSR)

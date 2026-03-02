@@ -8,9 +8,9 @@
 ]]
 
 local StartingCash = { easy = 7000, normal = 6000, hard = 5000, arcade = 5000 }
-local USSRCashReserves = { easy = 200000, normal = 200000, hard = 200000, arcade = 200000 }
-local BadGuyRCashReserves = { easy = 200000, normal = 200000, hard = 200000, arcade = 200000 }
 
+
+local OnlyOneMCV = { easy = false, normal = false, hard = true, challenge = true }
 
 SetDifficulty = function()
     if Difficulty == "easy" then
@@ -41,6 +41,9 @@ SetDifficulty = function()
 
 	end
 end
+
+local StartingCash = { easy = 7000, normal = 6000, hard = 5000 }
+local OnlyOneMCV = { easy = false, normal = false, hard = false }
 
 --This function is to allow usage of outliner. Remove at some point
 local function __DATA__() end
@@ -500,13 +503,8 @@ WorldLoaded = function()
 	USSR = Player.GetPlayer("USSR")
 	BadGuy = Player.GetPlayer("BadGuy")
 	Turkey = Player.GetPlayer("Turkey")
+	England = Player.GetPlayer("England")
 
-	USSR.Cash = 60000
-	BadGuy.Cash = 40000
-
-	Turkey.Cash = 10000
-
-	SetDifficulty()
 	InitTriggers()
 	PrepareObjectives()
 

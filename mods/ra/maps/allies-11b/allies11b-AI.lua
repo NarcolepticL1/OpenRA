@@ -1,6 +1,31 @@
-----------------------------------
---- Definitions Start    ---------
-----------------------------------
+--[[
+   Copyright (c) The OpenRA Developers and Contributors
+   This file is part of OpenRA, which is free software. It is made
+   available to you under the terms of the GNU General Public License
+   as published by the Free Software Foundation, either version 3 of
+   the License, or (at your option) any later version. For more
+   information, see COPYING.
+]]
+
+DebugMsgEnabled = true
+
+--For Debug
+D = function(msg)
+	if DebugMsgEnabled then
+		Media.Debug(tostring(msg))
+	end
+end
+
+------------------------------
+--- Definitions Start --------
+------------------------------
+
+local USSRCashReserves = { easy = 10000, normal = 10000, hard = 30000, arcade = 10000 }
+local BadGuyCashReserves = { easy = 4000, normal = 50000, hard = 75000, arcade = 75000 }
+
+local AlertUSSRDelays = { easy = DateTime.Minutes(8), normal = DateTime.Minutes(6), hard = DateTime.Minutes(5), challenge = DateTime.Minutes(5) }
+
+local AtkProductionIntervals = { easy = DateTime.Seconds(60), normal = DateTime.Seconds(40), hard = DateTime.Seconds(20), challenge = DateTime.Seconds(20) }
 
 ------------------------------
 --- Definitions End	----------
@@ -12,8 +37,7 @@
 local function __DATA__() end
 
 ---@type blueprint[]
-local USSRBaseBlueprints = {}
-USSRBaseBlueprints =
+local USSRBaseBlueprints =
 {
 	{ type = "apwr", actor = USSRPower1, cost = 500, shape = { 3, 3 }, location = CPos.New(38, 38) },
 	{ type = "apwr", actor = USSRPower2, cost = 500, shape = { 3, 3 }, location = CPos.New(49, 39) },
@@ -50,15 +74,17 @@ USSRBaseBlueprints =
 }
 
 ---@type blueprint[]
-BadGuyBaseBlueprints =
+local BadGuyBaseBlueprints =
 {
 	{ type = "powr", actor = BGPower1, cost = 500, shape = { 2, 3 }, location = CPos.New(102, 34) },
 	{ type = "apwr", actor = BGPower2, cost = 500, shape = { 3, 3 }, location = CPos.New(91, 30) }
 }
 
+
+local BGPower3, BGPower4, BGProc, BGBarr, BGWeap, BGSpen, BGAfld1, BGAfld2, BGAfld3, BGFtur1, BGFtur2, BGTsla1 =
+nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, nil
 ---@type blueprint[]
---BadGuyToBeBuilt = {}
-BadGuyToBeBuilt =
+local BadGuyBaseExtraBlueprints =
 {
     { type = "apwr", actor = BGPower3, cost = 500, shape = { 3, 3 }, location = CPos.New(99, 33) },
 	{ type = "apwr", actor = BGPower4, cost = 500, shape = { 3, 3 }, location = CPos.New(91, 33) },
@@ -97,128 +123,176 @@ USSRAttackPaths =
 
 BadGuyAttackPaths = { {BGAttackRallyWP.Location}}
 
-local function __UTILS__() end
-------------------------------
---- Utils Start	--------------
-------------------------------
+InfantryUnits = { "e1", "e2", "e4"}
+local InfantryAttackGroup = { }
+local InfantryAttackGroupSize = 12
 
-local PlayerMoney = function(owner)
-	return owner.Cash + owner.Resources
-end
+local VehicleTypes = { "3tnk", "3tnk", "3tnk", "v2rl", "v2rl" }
+local VehicleAttackGroup = {}
+local VehicleAttackGroupSize = 5
 
-local GrantCash = function(player, amount)
-    player.Cash = player.Cash + amount
-end
+local SubTypes = { "ss"}
+local SubAttackGroup = { }
+local SubAttackGroupSize = 5
+local NavalAtkPath = { }
 
+--------------------------------------------------------------------
+-----------------	UTILS BLOCK - START	----------------------------
+--------------------------------------------------------------------
+
+local function ________________UTILS________________() end
+
+---@param owner player
 local IsHarvesterMissing = function(owner)
 	return #owner.GetActorsByType("harv") == 0
 end
 
-------------------------------
---- Utils End	--------------
-------------------------------
+---@param owner player
+local CheckPlayerMoney = function(owner)
+	return owner.Cash + owner.Resources
+end
+
+---@param player player
+local GrantCash = function(player, amount)
+    player.Cash = player.Cash + amount
+end
+
+--Insert blueprints[] to player base building blueprints[]
+---@param blueprints blueprint[]
+---@param insert blueprint[]
+local InsertBlueprints = function(blueprints, insert)
+    Utils.Do(insert, function(b)
+        local index = #blueprints
+		table.insert(blueprints, index, b)
+        PrepareBlueprintEdges(b)
+    end)
+end
+
+--------------------------------------------------------------------
+-----------------	UTILS BLOCK - END	----------------------------
+--------------------------------------------------------------------
 
 --------------------------------------------------------------------
 -----------------	BASE MANAGEMENT BLOCK - START	----------------
 --------------------------------------------------------------------
 local function __BASE_MANAGEMENT__() end
 
+---@param actors actor[]
+---@param owner player
+local ScatterBlockers = function(actors, owner)
+	Utils.Do(actors, function(a)
+		if a.IsIdle and a.Owner == owner and a.HasProperty("Scatter") then
+			a.Scatter()
+		end
+	end)
+end
+
+---@param blueprint blueprint
+---@param owner player
+local IsBuildAreaBlocked = function(owner, blueprint)
+	local nw = blueprint.northwestEdge --[[@as wpos]]
+	local se = blueprint.southeastEdge --[[@as wpos]]
+	local blockers = Map.ActorsInBox(nw, se, function(actor)
+		-- Neutral check is for ignoring trees near the refinery.
+		return actor.Owner ~= Neutral and actor.CenterPosition.Z == 0 and actor.HasProperty("Health")
+	end)
+
+	if #blockers == 0 then
+		return false
+	end
+
+	ScatterBlockers(blockers, owner)
+	return true
+end
+
+---@param actor actor
+---@param blueprint blueprint
+---@param owner player
+local OnBlueprintBuilt = function(actor, blueprint, owner)
+	owner.Cash = owner.Cash - blueprint.cost
+	blueprint.actor = actor
+	MaintainBuilding(actor, blueprint, 0.75)
+
+	Trigger.AfterDelay(1, function()
+		if blueprint.type ~= "barr" and blueprint.type ~= "weap" and blueprint.type ~= "afld" and blueprint.type ~= "spen" then
+			return
+		end
+
+		if blueprint.type == "barr" then
+			ProduceInfantry(actor, owner)
+		elseif blueprint.type == "weap" then
+			D("ProduceArmor")
+			ProduceArmor(actor, owner)
+		elseif blueprint.type == "weap" then
+			ProduceAircraft(actor, owner)
+		elseif blueprint.type == "weap" then
+			ProduceSubs(actor, owner)
+		end
+	end)
+end
+
+---@param blueprints blueprint[]
+---@param blueprint blueprint
+---@param cyard actor
+---@param owner player
+local BuildBlueprint = function(blueprints, blueprint, cyard, owner)
+	Trigger.AfterDelay(Actor.BuildTime(blueprint.type), function()
+		if cyard.IsDead or cyard.Owner ~= owner then
+			return
+		elseif CheckPlayerMoney(owner) <= 299 --[[and IsHarvesterMissing()]] then
+			return
+		end
+
+		if IsBuildAreaBlocked(owner, blueprint) then
+			Trigger.AfterDelay(DateTime.Seconds(5), function()
+				BuildBlueprint(blueprints, blueprint, cyard, owner)
+			end)
+			return
+		end
+
+		local actor = Actor.Create(blueprint.type, true, { Owner = owner, Location = blueprint.location })
+		OnBlueprintBuilt(actor, blueprint, owner)
+		Trigger.AfterDelay(DateTime.Seconds(10), function()
+			BuildBase(blueprints, cyard, owner)
+		end)
+	end)
+end
+
 ---@param blueprints blueprint[]
 ---@param cyard any
 ---@param owner player
 local BuildBase = function(blueprints, cyard, owner)
-    for _, b in ipairs(blueprints) do
-        if not b.actor then
-            Media.Debug(b.type)
-            BuildBlueprint(b, cyard, owner, blueprints)
+	for _, blueprint in ipairs(blueprints) do
+		if not blueprint.actor then
+			BuildBlueprint(blueprints, blueprint, cyard, owner)
 			return
 		end
 	end
-    if owner == BadGuy then Media.Debug("Entering?") end
-
-	Trigger.AfterDelay(DateTime.Seconds(1), function() --CHANGE: Change to 1 second
-        BuildBase(blueprints, cyard, owner)
-    end)
-end
-
-local BuildBlueprint = function(blueprint, cyard, owner, blueprints)
-    Trigger.AfterDelay(1 --[[Actor.BuildTime(blueprint.type)]], function()   --CHANGE: Change to actual actor buildTime
-		if cyard.IsDead or cyard.Owner ~= owner then
-			Media.Debug("RETURN - ENTER 1")
-            return
-		elseif PlayerMoney(owner) <= 299 --[[and IsHarvesterMissing(owner)]] then
-            Media.Debug("RETURN - ENTER 2")
-            return
-		end
-		if IsBuildAreaBlocked(owner, blueprint) then
-			Media.Debug("Check if build")
-            Trigger.AfterDelay(DateTime.Seconds(5), function()
-
-				BuildBlueprint(blueprint, cyard, owner, blueprints)
-			end)
-			return
-		end
-		local actor = Actor.Create(blueprint.type, true, { Owner = owner, Location = blueprint.location })
-		OnBlueprintBuilt(actor, blueprint, owner)
-
-		Trigger.AfterDelay(DateTime.Seconds(1), function()
-            BuildBase(blueprints, cyard, owner)
-        end)
+	Trigger.AfterDelay(DateTime.Seconds(10), function()
+		BuildBase(blueprints, cyard, owner)
 	end)
 end
 
-local OnBlueprintBuilt = function(actor, blueprint, owner)
-    owner.Cash = owner.Cash - blueprint.cost
-	blueprint.actor = actor
-	MaintainBuilding(actor, blueprint, 0.75)
-	if blueprint.onBuilt then
-		-- Build() will not work properly on producers if immediately called.
-		Trigger.AfterDelay(DateTime.Seconds(1), function()
-            blueprint.onBuilt(actor)
-		end)
-	end
+---@param blueprint blueprint
+local PrepareBlueprintEdges = function(blueprint)
+	local shapeX, shapeY = blueprint.shape[1], blueprint.shape[2]
+	local northwestEdge = Map.CenterOfCell(blueprint.location) + WVec.New(-512, -512, 0)
+	local southeastEdge = northwestEdge + WVec.New(shapeX * 1024, shapeY * 1024, 0)
+	blueprint.northwestEdge = northwestEdge
+	blueprint.southeastEdge = southeastEdge
 end
 
-local IsBuildAreaBlocked = function(player, blueprint)
-    local nw, se = blueprint.northwestEdge, blueprint.southeastEdge
-    local blockers = Map.ActorsInBox(nw, se, function(actor)
-		-- Neutral check is for ignoring trees near the refinery.
-		return actor.Owner ~= Neutral and actor.CenterPosition.Z == 0 and actor.HasProperty("Health") and actor.Type ~= "stek"
-	end)
-	if #blockers == 0 then
-		return false
-	end
-	ScatterBlockers(player, blockers)
-	return true
-end
-
-local ScatterBlockers = function(player, actors)
-	Utils.Do(actors, function(actor)
-		if actor.IsIdle and actor.Owner == player and actor.HasProperty("Scatter") then
-			actor.Scatter()
-		end
-	end)
-end
-
-local BeginBaseMaintenance = function(blueprints, owner)
-    Utils.Do(blueprints, function(blueprint)
-		MaintainBuilding(blueprint.actor, blueprint)
-	end)
-	Utils.Do(owner.GetActors(), function(actor)
-		if actor.HasProperty("StartBuildingRepairs") then
-			MaintainBuilding(actor, nil, 0.75)
-		end
-	end)
-end
-
+---@param actor actor
+---@param blueprint? blueprint
+---@param repairThreshold number
 local MaintainBuilding = function(actor, blueprint, repairThreshold)
-    if blueprint then
-        Trigger.OnKilled(actor, function() blueprint.actor = nil end)
-        Trigger.OnSold(actor, function() blueprint.actor = nil end)
+	if blueprint then
+		Trigger.OnKilled(actor, function() blueprint.actor = nil end)
+		Trigger.OnSold(actor, function() blueprint.actor = nil end)
 		if not blueprint.northwestEdge then
-            PrepareBlueprintEdges(blueprint)
+			PrepareBlueprintEdges(blueprint)
 		end
-    end
+	end
 
 	if repairThreshold then
 		local original = actor.Owner
@@ -227,41 +301,51 @@ local MaintainBuilding = function(actor, blueprint, repairThreshold)
 			if actor.Owner ~= original or actor.Health > actor.MaxHealth * repairThreshold then
 				return
 			end
+
 			actor.StartBuildingRepairs()
 		end)
 	end
 end
 
-local PrepareBlueprintEdges = function(blueprint)
-	local shapeX, shapeY = blueprint.shape[1], blueprint.shape[2]
-	local northwestEdge = Map.CenterOfCell(blueprint.location) + WVec.New(-512, -512, 0)
-    local southeastEdge = northwestEdge + WVec.New(shapeX * 1024, shapeY * 1024, 0)
-	blueprint.northwestEdge = northwestEdge
-    blueprint.southeastEdge = southeastEdge
+---@param blueprints blueprint[]
+---@param owner player
+local BeginBaseMaintenance = function(blueprints, owner)
+	Utils.Do(blueprints, function(blueprint)
+		MaintainBuilding(blueprint.actor, blueprint, 0.75)
+	end)
+	Utils.Do(owner.GetActors(), function(actor)
+		if actor.HasProperty("StartBuildingRepairs") then
+			MaintainBuilding(actor, nil, 0.75)
+		end
+	end)
 end
 
-local InsertBlueprints = function()
-    local t = BadGuyBaseBlueprints
-    local build = BadGuyToBeBuilt
-    local index = #BadGuyBaseBlueprints + 1
-
-    Utils.Do(BadGuyToBeBuilt, function(b)
-        table.insert(t, index, b)
-        PrepareBlueprintEdges(b)
-    end)
-end
-
-local ProduceHarvester = function(owner, factory, delay)
-	if PlayerMoney(owner) < Actor.Cost("harv") then
+---Issues an order to player to produce an harvester if there is enough cash
+---@param producer actor
+---@param owner player
+---@param delay number
+local ProduceHarvester = function(producer, owner, delay)
+	if CheckPlayerMoney(owner) < Actor.Cost("harv") then
 		return
 	end
 
 	local toBuild = { "harv" }
 	owner.Build(toBuild, function()
 		Trigger.AfterDelay(delay, function()
-			ProduceArmor(factory)
+			ProduceArmor(producer, owner)
 		end)
 	end)
+end
+
+---@param producer actor
+---@param owner player
+local ProducerAvailableCheck = function(producer, owner)
+	local type = producer.Type
+	if #owner.GetActorsByType(type) > 0 then
+		return true
+	else
+		return false
+	end
 end
 
 --------------------------------------------------------------------
@@ -269,11 +353,13 @@ end
 --------------------------------------------------------------------
 
 --------------------------------------------------------------------
-----------------	AI ATTACKING BLOCK - START	--------------------
+----------------	ATTACKING BLOCK - START	    --------------------
 --------------------------------------------------------------------
-local function __AI_ATTACKS__() end
+local function ________________AI_ATTACKS________________() end
 
-SendUnits = function(units, path)
+---@param units actor[]
+---@param path cpos[]
+local SendUnits = function(units, path)
 	Utils.Do(units, function(unit)
 		if unit.IsDead then
 			return
@@ -287,6 +373,40 @@ end
 -----------------------
 --- Inf Attacks     ---
 -----------------------
+local function __INF_ATTACKS__() end
+
+
+-------------[[ CHOOSE BETWEEN THIS TWO FUNCTIONS ( ProduceInfantry )]]
+
+---@param producer actor
+---@param owner player
+ProduceInfantry = function(producer, owner)
+	if not ProducerAvailableCheck(producer, owner) then
+		return
+	elseif CheckPlayerMoney(owner) <= 299 --[[and IsHarvesterMissing()]] then
+		return
+	end
+
+	local delay = Utils.RandomInteger(DateTime.Seconds(12), DateTime.Seconds(17))
+	local toBuild = { Utils.Random(InfantryUnits) }
+
+	owner.Build(toBuild, function(units)
+		table.insert(InfantryAttackGroup, units[1])
+
+		if #InfantryAttackGroup >= InfantryAttackGroupSize then
+			SendUnits(InfantryAttackGroup, LandAtkPaths)
+			InfantryAttackGroup = { }
+			Trigger.AfterDelay(AtkProductionInterval, function()
+				ProduceInfantry(producer, owner)
+			end)
+		else
+			Trigger.AfterDelay(delay, function()
+				ProduceInfantry(producer, owner)
+			end)
+		end
+	end)
+end
+
 
 ---@param barrack any
 ---@param owner player
@@ -583,14 +703,24 @@ end
 --------------------------------------------------------------------
 local function __AI_SETUP__() end
 
-AISetup = function()
+SetupAIActivities = function()
+    USSRCashReserve = USSRCashReserves[Difficulty]
+    BadGuyCashReserve = BadGuyCashReserves[Difficulty]
+
+    -- For repairs
+    Turkey.Cash = 5000
+
+    AlertUSSRDelay = AlertUSSRDelays[Difficulty]
+
     BeginBaseMaintenance(USSRBaseBlueprints, USSR)
     BeginBaseMaintenance(BadGuyBaseBlueprints, BadGuy)
+
+    BeginBaseMaintenance(TurkeyBaseBlueprints, Turkey)
 
     BuildBase(USSRBaseBlueprints, USSRFact, USSR)
 
     Trigger.AfterDelay(DateTime.Seconds(10), function()
-        InsertBlueprints()
+        InsertBlueprints(BadGuyBaseBlueprints, BadGuyBaseExtraBlueprints)
     end)
 
     ProduceInfantry(USSRBarr, USSR)

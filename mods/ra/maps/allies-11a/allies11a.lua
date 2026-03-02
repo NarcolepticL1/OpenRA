@@ -42,6 +42,10 @@ TL;DR
 - Change top power plants and island fortifications to new player (not USSR and not BadGuy)
 ]]
 
+local StartingCashReserves = { easy = 7000, normal = 6000, hard = 5000, challenge = 5000 }
+
+local OnlyOneMCV = { easy = false, normal = false, hard = true, challenge = true }
+
 local McvReinforcements1 = { actors = { "mcv" }, entryPath = { MCVEntry1.Location, MCVDst1.Location } }
 local McvReinforcements2 = { actors = { "mcv" }, entryPath = { MCVEntry2.Location, MCVDst2.Location } }
 local McvReinforcements3 = { actors = { "mcv" }, entryPath = { MCVEntry3.Location, MCVDst3.Location } }
@@ -82,7 +86,7 @@ local MmthPatrolPath =
 }
 
 local USSRBase = {
-	USSRFact, USSRPower1, USSRPower2, USSRPower3, USSRPower4, USSRPower5, USSRPower6, USSRPower7, USSRProc, USSRBarr, USSRWeap, 
+	USSRFact, USSRPower1, USSRPower2, USSRPower3, USSRPower4, USSRPower5, USSRPower6, USSRPower7, USSRProc, USSRBarr, USSRWeap,
 	USSRSpen, USSRKenn, USSRAfld1, USSRAfld2, USSRAfld3, USSRAfld4, USSRDome, USSRStek, USSRFtur1, USSRFtur2, USSRTsla1, USSRTsla2
 }
 
@@ -102,7 +106,7 @@ local FcomDiscovered = false
 -- - X time has passed
 -- - USSR player is defeated
 
-AlertUSSR = function()
+local function AlertUSSR()
 	if USSRAlerted then
 		return
 	end
@@ -111,7 +115,7 @@ AlertUSSR = function()
 	RunUSSRActivities()
 end
 
-AlertBadGuy = function()
+local function AlertBadGuy()
 	if BadGuyAlerted then
 		return
 	end
@@ -122,7 +126,7 @@ end
 
 ---@param a actor
 ---@return boolean
-IsNaval = function(a)
+local function IsNaval(a)
 	return Utils.Any({ "ca", "dd", "lst", "pt", "ss" }, function(shipType)
 		return a.Type == shipType
 	end)
@@ -130,7 +134,7 @@ end
 
 --- Create an imitation of the eastern land area's original zone footprint.
 ---@param action fun()
-local CreateZoneTriggers = function(action)
+local function CreateZoneTriggers(action)
 	local cells = { CPos.New(93, 96), CPos.New(103, 86), CPos.New(87, 69), CPos.New(97, 63), CPos.New(95, 48), CPos.New(102, 31) }
 	local triggers = { }
 
@@ -149,7 +153,7 @@ end
 
 --- Activate the east base once Allies attack it, land somewhere east of
 --- the river that isn't on Turkey's beach, or do enough damage to USSR.
-local PrepareBadGuyAlerts = function()
+local function PrepareBadGuyAlerts()
 	CreateZoneTriggers(AlertBadGuy)
 	local eastBase = BadGuy.GetActorsByTypes({ "apwr", "fact", "fcom", "powr", "brik" })
 
@@ -170,7 +174,7 @@ end
 ------ BADGUY ALERT	END		--------
 ------------------------------------
 
-local InitialSovietPatrols = function()
+local function InitialSovietPatrols()
 	local mmt_patrol = { mmth1, mmth2 }
 
 	Utils.Do(mmt_patrol, function(t)
@@ -186,7 +190,7 @@ local InitialSovietPatrols = function()
 	end)
 end
 
-local InitialSovietWarning = function()
+local function InitialSovietWarning()
 	OnAnyDamaged(USSRBase, function(victim, attacker)
 		if victim.Health < victim.MaxHealth * 0.75 and attacker.Owner == Greece then
 			AlertUSSR()
@@ -194,7 +198,7 @@ local InitialSovietWarning = function()
 	end)
 end
 
-local InitialAlliedReinforcements = function()
+local function InitialAlliedReinforcements()
 	if OnlyOneMCV == false then
 		Trigger.AfterDelay(DateTime.Seconds(1), function()
 			Media.PlaySpeechNotification(Greece, "ReinforcementsArrived")
@@ -208,7 +212,7 @@ local InitialAlliedReinforcements = function()
 	end
 end
 
-local TimerExpiredSendCruisers = function()
+local function TimerExpiredSendCruisers()
 	if SentCruisers then
 		return
 	end
@@ -248,7 +252,7 @@ local TimerExpiredSendCruisers = function()
 	end)
 end
 
-local TimerExpiredSendNavy = function()
+local function TimerExpiredSendNavy()
 	if SentNavy then
 		return
 	end
@@ -281,7 +285,7 @@ local TimerExpiredSendNavy = function()
 	Trigger.AfterDelay(DateTime.Seconds(10), TimerExpiredSendCruisers)
 end
 
-local FinishTimer = function()
+local function FinishTimer()
 	for i = 0, 9, 1 do
 		local c = TimerColor
 		if i % 2 == 0 then
@@ -293,7 +297,7 @@ local FinishTimer = function()
 	Trigger.AfterDelay(DateTime.Seconds(2), TimerExpiredSendNavy)
 end
 
-local FComDiscovery = function()
+local function FComDiscovery()
 	Trigger.OnDiscovered(BGFcom, function(_, discoverer)
 		if discoverer ~= Greece then
 			return
@@ -308,7 +312,7 @@ local FComDiscovery = function()
 end
 
 InitTriggers = function()
-	Greece.Cash = StartingCash
+	Greece.Cash = StartingCashReserves[Difficulty]
 
 	InitialAlliedReinforcements()
 
@@ -326,15 +330,15 @@ end
 PrepareObjectives = function()
 	InitObjectives(Greece)
 
-	ClearNavalChannel = Greece.AddObjective("Clear the naval channel.")
+	ClearNavalChannel = AddPrimaryObjective(Greece, "clear-the-naval-channel")
 
-	USSRObj = USSR.AddObjective("Eliminate all Allied forces.")
+	DenyAllies = AddPrimaryObjective(USSR, "Eliminate all Allied forces.")
 
 	Trigger.OnPlayerLost(Greece, function()
 		Trigger.AfterDelay(DateTime.Seconds(1), function()
 			Media.PlaySpeechNotification(USSR, "MissionFailed")
 		end)
-	end)	
+	end)
 	Trigger.OnPlayerWon(Greece, function()
 		Trigger.AfterDelay(DateTime.Seconds(1), function()
 			Media.PlaySpeechNotification(USSR, "MissionAccomplished")
@@ -350,9 +354,6 @@ PrepareObjectives = function()
 end
 
 Tick = function()
-	USSR.Cash = 5000
-	BadGuy.Cash = 10000
-
 	if Greece.HasNoRequiredUnits() then
 		USSR.MarkCompletedObjective(USSRObj)
 	end
@@ -379,7 +380,6 @@ WorldLoaded = function()
 	England = Player.GetPlayer("England")
 	Neutral = Player.GetPlayer("Neutral")
 
-	SetDifficulty()
 	InitTriggers()
 	PrepareObjectives()
 

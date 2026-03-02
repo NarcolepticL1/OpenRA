@@ -16,52 +16,26 @@ D = function(msg)
 	end
 end
 
-SetDifficulty = function()
-    if Difficulty == "easy" then
-        StartingCash = 7000
+------------------------------
+--- Definitions Start --------
+------------------------------
 
-        USSRStartingCash = 75000
-        BadGuyStartingCash = 30000
+local USSRCashReserves = { easy = 10000, normal = 10000, hard = 30000, arcade = 3000 }
+local BadGuyCashReserves = { easy = 40000, normal = 50000, hard = 75000, arcade = 75000 }
 
-		OnlyOneMCV = false
+local AlertUSSRDelays = { easy = DateTime.Minutes(8), normal = DateTime.Minutes(6), hard = DateTime.Minutes(5), challenge = DateTime.Minutes(5) }
 
-		AlertUSSRDelay = DateTime.Minutes(8)
+local AtkProductionIntervals = { easy = DateTime.Seconds(60), normal = DateTime.Seconds(40), hard = DateTime.Seconds(20), challenge = DateTime.Seconds(20) }
 
-		AtkProductionInterval = DateTime.Seconds(60)
-
-    elseif Difficulty == "normal" then
-        StartingCash = 6000
-
-        USSRStartingCash = 100000
-        BadGuyStartingCash = 40000
-
-		OnlyOneMCV = false
-
-		AlertUSSRDelay = DateTime.Minutes(6)
-
-		AtkProductionInterval = DateTime.Seconds(40)
-
-    elseif Difficulty == "hard" then
-		StartingCash = 5000
-
-        USSRStartingCash = 100000
-        BadGuyStartingCash = 40000
-
-		OnlyOneMCV = true
-
-		AlertUSSRDelay = DateTime.Minutes(5)
-
-		AtkProductionInterval = DateTime.Seconds(20)
-	end
-end
+------------------------------
+--- Definitions End	----------
+------------------------------
 
 --------------------------------------------------------------------
 -----------------	    DATA BLOCK - START	------------------------
 --------------------------------------------------------------------
 local function ______DATA______() end
 
----@type actor
-local USSRSam1, USSRSam2, USSRSam3, USSRSam4 = nil, nil, nil, nil
 ---@type blueprint[]
 local USSRBaseBlueprints =
 {
@@ -122,7 +96,6 @@ local BadGuyBaseExtraBlueprints =
 
 	{ type = "ftur", actor = BGFtur1, cost = 600, shape = { 1, 1 }, location = CPos.New(96, 60) },
 	{ type = "ftur", actor = BGFtur2, cost = 600, shape = { 1, 1 }, location = CPos.New(100, 60) },
-	{ type = "dome", actor = BGDome, cost = 1400, shape = { 2, 3 }, location = CPos.New(93, 51) }, --Added dome for BadGuy's "v2rl" prerequisite
 
 	{ type = "barr", actor = BGBarr, cost = 500, shape = { 2, 3 }, location = CPos.New(95, 50), owner = BadGuy, producer = true },
 	{ type = "weap", actor = BGWeap, cost = 2000, shape = { 3, 3 }, location = CPos.New(92, 55), owner = BadGuy, producer = true },
@@ -139,9 +112,64 @@ local BadGuyBaseExtraBlueprints =
 	{ type = "sam", actor = BGSam4, cost = 700, shape = { 2, 1 }, location = CPos.New(104, 47) }
 }
 
+local VehicleAttackInterval = { easy = DateTime.Seconds(180), normal = DateTime.Minutes(150), hard = DateTime.Minutes(120), challenge = DateTime.Minutes(120)}
+
+-- Added full blueprint objects for Turkey just to don't mess up intellisense
+---@type blueprint[]
+local TurkeyBaseBlueprints =
+{
+	{ type = "apwr", actor = BGOutPower1, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48)  }, 
+	{ type = "apwr", actor =BGOutPower2, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
+	{ type = "apwr", actor =BGOutPower3, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
+	{ type = "apwr", actor =BGOutPower4, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
+	{ type = "apwr", actor =BGOutPower5, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
+	{ type = "apwr", actor =BGOutPower6, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
+	{ type = "apwr", actor =BGOutPower7, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
+	{ type = "apwr", actor =BGOutPower8, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) },
+	{ type = "apwr", actor =BGOutSam1, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
+	{ type = "apwr", actor =BGOutSam2, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
+	{ type = "apwr", actor =BGOutSam3, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
+	{ type = "apwr", actor =BGOutSam4, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
+	{ type = "apwr", actor =BGOutSam5, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }
+}
+
+-------------------------
+-- Land Attacks Data   --
+-------------------------
+
+local USSRAttackPaths = { MammothPatrolWP10.Location }
+local BadGuyAttackPaths = { }
+
+local InfantryTypes = { "e1", "e2", "e4"}
+local InfantryAttackGroup = { }
+local InfantryAttackGroupSizes = { easy = 6, normal = 9, hard = 12, challenge = 12 }
+
+local VehicleTypes = { "3tnk", "3tnk", "3tnk", "v2rl", "v2rl", "4tnk" }
+local VehicleAttackGroup = {}
+local VehicleAttackGroupSizes = { easy = 2, normal = 3, hard = 4, challenge = 4}
+
+local VehicleUSSRAttackGroup = { }
+local VehicleBadGuyAttackGroup = { }
+
+local InfantryUSSRAttackGroup = { }
+local InfantryBadGuyAttackGroup = { }
+
+-------------------------
+-- Naval Attacks Data  --
+-------------------------
+
+local SubTypes = { "ss"}
+local SubAttackGroup = { }
+local SubAttackGroupSize = 2
+local NavalAtkPath = { }
+
+-----------------------
+-- Air Attacks Data  --
+-----------------------
+
 local CurrentAirWave = 1
 local BasePlanes = {}
-local TotalAflds = 4
+local TotalAflds = 4 --Map dependent
 
 local AircraftTypes = { "yak", "mig" }
 local PlanesAttackGroup = { }
@@ -154,22 +182,6 @@ local SovietAirTeams = {
 	{ types = { "mig", "mig", "yak" }, interval = DateTime.Seconds(219),  path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1.Location + CVec.New(-1, 0) } },
 	{ types = { "mig", "mig", "mig", "yak", "yak", "yak", "yak" }, interval = DateTime.Seconds(210), path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1	.Location + CVec.New(-1, 0) } }
 }
-
-local LandAtkPaths = { MammothPatrolWP10.Location }
-
-local InfantryUnits = { "e1", "e2", "e4"}
-local InfantryAttackGroup = { }
-local InfantryAttackGroupSize = 12
-
-local VehicleTypes = { "3tnk", "3tnk", "3tnk", "v2rl", "v2rl" }
-local VehicleAttackGroup = {}
-local VehicleAttackGroupSize = 5
-
-local SubTypes = { "ss"}
-local SubAttackGroup = { }
-local SubAttackGroupSize = 5
-local NavalAtkPath = { }
-
 
 --------------------------------------------------------------------
 -----------------	    DATA BLOCK - END	------------------------
@@ -534,7 +546,7 @@ AfldAvailableCheck = function(producer, owner)
 	else
 		return false
 	end
-	TotalAflds = USSR.GetActorsByType("afld")
+	TotalAflds = #USSR.GetActorsByType("afld")
 end
 
 ---@param producer actor
@@ -637,7 +649,7 @@ ScheduleAirWave = function(wave)
 				if unit.AmmoCount() > 0 then
 					table.insert(BasePlanes, unit)
 					return
-				elseif HasAirfield(unit.Owner) and #BasePlanes < TotalAflds then
+				elseif HasAirfield(unit.Owner) and #BasePlanes < #TotalAflds then
 					return
 				end
 				OnAircraftStranded(unit, team.path[1])
@@ -757,8 +769,20 @@ end
 --------------------------------------------------------------------
 
 SetupAIActivities = function()
+	USSRCashReserve = USSRCashReserves[Difficulty]
+    BadGuyCashReserve = BadGuyCashReserves[Difficulty]
+
+	AtkProductionInterval = AtkProductionIntervals[Difficulty]
+
+	-- For repairs
+    Turkey.Cash = 5000
+
+	AlertUSSRDelay = AlertUSSRDelays[Difficulty]
+
 	BeginBaseMaintenance(USSRBaseBlueprints, USSR)
 	BeginBaseMaintenance(BadGuyBaseBlueprints, BadGuy)
+
+	BeginBaseMaintenance(TurkeyBaseBlueprints, Turkey)
 
 	Trigger.AfterDelay(DateTime.Minutes(4), function()
 		EnemySubsReinforcements()

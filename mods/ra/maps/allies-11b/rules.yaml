@@ -1,0 +1,132 @@
+World:
+	LuaScript:
+		Scripts: campaign.lua, utils.lua, allies11b.lua, allies11b-AI.lua, allies11b-reinforcements.lua
+	MissionData:
+		Briefing: 
+		#StartVideo: destroyr.vqa
+		#LossVideo: shipsink.vqa
+		WinVideo: shorbomb.vqa
+		BriefingVideo: ally11.vqa
+	ScriptLobbyDropdown@difficulty:
+		ID: difficulty
+		Label: dropdown-difficulty.label
+		Description: dropdown-difficulty.description
+		Values:
+			easy: options-difficulty.easy
+			normal: options-difficulty.normal
+			hard: options-difficulty.hard
+			arcade: Arcade
+		Default: normal
+	TimeLimitManager:
+		CountdownLabel: MISSION_TEXT
+		CountdownText: Cruisers arrive in {0}
+		Notification: {0} minute{1} remaining
+		SkipTimerExpiredNotification: True
+
+# TODO remove this later. It makes BadGuy use the more distinct Ukraine colors.
+^Palettes:
+	IndexedPlayerPalette:
+		PlayerIndex:
+			BadGuy: 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223
+	IndexedPlayerPalette@NOSHADOW:
+		PlayerIndex:
+			BadGuy: 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223
+
+Player:
+	DeveloperMode:
+		CheckboxEnabled: true
+		FastBuild: true
+
+CAMERA.watcher:
+	Inherits: CAMERA
+
+FCOM:
+	AnnounceOnSeen:
+
+^Submarine:
+	MustBeDestroyed:
+	ScriptTags:
+
+CA:
+	Buildable:
+		Prerequisites: ~disabled
+	RevealOnDeath:
+		Duration: 75
+
+DOG:
+	ScriptTags:
+
+E1:
+	ScriptTags:
+
+E2:
+	ScriptTags:
+
+E4:
+	ScriptTags:
+
+3TNK:
+	ScriptTags:
+
+4TNK:
+	Buildable:
+		Prerequisites: stek
+
+V2RL:
+	ScriptTags:	
+
+QTNK:
+	Buildable:
+		Prerequisites: ~disabled
+
+MCV:
+	Buildable:
+		Prerequisites: ~disabled
+
+MGG:
+	Buildable:
+		Prerequisites: ~disabled
+
+PDOX:
+	Buildable:
+		Prerequisites: ~disabled
+
+CTNK:
+	Buildable:
+		Prerequisites: ~disabled
+
+MRJ:
+	Buildable:
+		Prerequisites: ~disabled
+
+IRON:
+	Buildable:
+		Prerequisites: ~disabled
+
+DTRK:
+	Buildable:
+		Prerequisites: ~disabled
+
+MSLO:
+	Buildable:
+		Prerequisites: ~disabled
+
+E7:
+	Buildable:
+		Prerequisites: ~disabled
+
+MECH:
+	Buildable:
+		Prerequisites: ~disabled
+
+THF:
+	Buildable:
+		Prerequisites: ~disabled
+
+MSUB:
+	Buildable:
+		Prerequisites: ~disabled
+
+FTRK:
+	Buildable:
+		Prerequisites: ~disabled

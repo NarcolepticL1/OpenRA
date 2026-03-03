@@ -2,7 +2,7 @@ World:
 	LuaScript:
 		Scripts: campaign.lua, utils.lua, allies11b.lua, allies11b-AI.lua
 	MissionData:
-		Briefing: 
+		Briefing: briefing
 		StartVideo: destroyr.vqa
 		LossVideo: shipsink.vqa
 		WinVideo: shorbomb.vqa
@@ -15,7 +15,6 @@ World:
 			easy: options-difficulty.easy
 			normal: options-difficulty.normal
 			hard: options-difficulty.hard
-			arcade: Arcade
 		Default: normal
 	TimeLimitManager:
 		CountdownLabel: MISSION_TEXT
@@ -31,11 +30,6 @@ World:
 	IndexedPlayerPalette@NOSHADOW:
 		PlayerIndex:
 			BadGuy: 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223
-
-Player:
-	DeveloperMode:
-		CheckboxEnabled: true
-		FastBuild: true
 
 CAMERA.watcher:
 	Inherits: CAMERA
@@ -63,17 +57,22 @@ E2:
 	ScriptTags:
 
 E4:
+	Buildable:
+		Prerequisites: ~infantry.soviet
 	ScriptTags:
 
 3TNK:
-	ScriptTags:
+	Buildable:
+		Prerequisites: ~vehicles.soviet
+
+V2RL:
+	Buildable:
+		Prerequisites: ~vehicles.soviet
 
 4TNK:
 	Buildable:
-		Prerequisites: stek
-
-V2RL:
-	ScriptTags:	
+		Prerequisites: ~vehicles.soviet
+	ScriptTags:
 
 QTNK:
 	Buildable:

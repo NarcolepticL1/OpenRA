@@ -664,9 +664,6 @@ Actors:
 	USSRPower2: apwr
 		Location: 49,39
 		Owner: USSR
-	USSRPower3: apwr
-		Location: 34,43
-		Owner: USSR
 	USSRPower4: apwr
 		Location: 30,44
 		Owner: USSR
@@ -716,13 +713,15 @@ Actors:
 		Facing: 384
 	Actor253: v2rl
 		Location: 37,48
-		Owner: USSR
 		ScriptTags: Area Guard
+		Owner: USSR
 		Facing: 512
+		Stance: Defend
 	Actor254: v2rl
 		Location: 48,49
 		Owner: USSR
 		Facing: 512
+		Stance: Defend
 	StartMammoth1: 4tnk
 		Location: 56,59
 		Owner: USSR
@@ -749,10 +748,6 @@ Actors:
 		Facing: 896
 	Actor261: arty
 		Location: 35,99
-		Owner: Greece
-		Facing: 896
-	Actor262: arty
-		Location: 33,100
 		Owner: Greece
 		Facing: 896
 	Actor263: e2
@@ -813,12 +808,6 @@ Actors:
 		SubCell: 1
 		Facing: 512
 		ScriptTags: Area Guard
-	Actor273: e4
-		Location: 46,51
-		Owner: USSR
-		SubCell: 2
-		Facing: 640
-		ScriptTags: Area Guard
 	Actor274: e1
 		Location: 34,96
 		Owner: Greece
@@ -845,8 +834,8 @@ Actors:
 	NorthSub4: ss
 		Location: 65,32
 		Owner: USSR
-		Facing: 640
 		ScriptTags: Area Guard
+		Facing: 640
 	IslandSub1: ss
 		Location: 77,42
 		Owner: USSR
@@ -855,14 +844,6 @@ Actors:
 		Location: 86,48
 		Owner: USSR
 		Facing: 512
-	IslandSub3: ss
-		Location: 70,52
-		Owner: USSR
-		Facing: 768
-	IslandSub4: ss
-		Location: 67,54
-		Owner: USSR
-		Facing: 640
 	IslandSub5: ss
 		Location: 83,55
 		Owner: USSR
@@ -878,8 +859,8 @@ Actors:
 	SouthSub1: ss
 		Location: 84,66
 		Owner: USSR
-		Facing: 640
 		ScriptTags: Area Guard
+		Facing: 640
 	SouthSub2: ss
 		Location: 84,74
 		Owner: USSR
@@ -921,14 +902,6 @@ Actors:
 		Owner: USSR
 	Waypoint37: waypoint
 		Location: 43,100
-		Faction: england
-		Owner: USSR
-	Waypoint83: waypoint
-		Location: 104,45
-		Faction: england
-		Owner: USSR
-	Waypoint84: waypoint
-		Location: 104,87
 		Faction: england
 		Owner: USSR
 	Waypoint96: waypoint
@@ -1049,97 +1022,9 @@ Actors:
 	BGPower1: powr
 		Location: 102,34
 		Owner: BadGuy
-	BGFact: fact
-		Location: 96,29
-		Owner: BadGuy
-	TurkPower1: apwr
-		Location: 91,19
-		Owner: Turkey
-	TurkPower2: apwr
-		Location: 97,19
-		Owner: Turkey
-	TurkPower3: apwr
-		Location: 94,21
-		Owner: Turkey
-	TurkPower4: apwr
-		Location: 97,22
-		Owner: Turkey
-	TurkPower5: apwr
-		Location: 100,21
-		Owner: Turkey
-	TurkPower6: apwr
-		Location: 91,23
-		Owner: Turkey
-	TurkSam1: sam
-		Location: 90,18
-		Owner: Turkey
-		Facing: 384
-	TurkSam2: sam
-		Location: 95,18
-		Owner: Turkey
-		Facing: 768
-	TurkSam3: sam
-		Location: 95,24
-		Owner: Turkey
-		Facing: 640
-	TurkSam4: sam
-		Location: 100,24
-		Owner: Turkey
-		Facing: 640
 	BGPower2: apwr
 		Location: 91,30
 		Owner: BadGuy
-	USSRFtur2: ftur
-		Location: 45,49
-		Owner: USSR
-	USSRFtur1: ftur
-		Location: 40,49
-		Owner: USSR
-	EnglandNavyLeftEntry: waypoint
-		Location: 64,102
-		Owner: Neutral
-	EnglandNavyRightEntry: waypoint
-		Location: 72,102
-		Owner: Neutral
-	EnglandNavyLeftExit1: waypoint
-		Location: 67,17
-		Owner: Neutral
-	EnglandNavyRightWP1: waypoint
-		Location: 73,83
-		Owner: Neutral
-	EnglandNavyRightWP2: waypoint
-		Location: 88,72
-		Owner: Neutral
-	EnglandNavyRightWP3: waypoint
-		Location: 86,51
-		Owner: Neutral
-	EnglandNavyRightWP4: waypoint
-		Location: 76,42
-		Owner: Neutral
-	EnglandNavyRightWP5: waypoint
-		Location: 73,37
-		Owner: Neutral
-	EnglandNavyRightWP6: waypoint
-		Location: 74,24
-		Owner: Neutral
-	EnglandNavyLeftWP1: waypoint
-		Location: 68,81
-		Owner: Neutral
-	EnglandNavyLeftWP2: waypoint
-		Location: 80,72
-		Owner: Neutral
-	EnglandNavyLeftWP3: waypoint
-		Location: 81,55
-		Owner: Neutral
-	EnglandNavyLeftWP4: waypoint
-		Location: 66,53
-		Owner: Neutral
-	EnglandNavyLeftWP5: waypoint
-		Location: 66,37
-		Owner: Neutral
-	EnglandNavyLeftWP6: waypoint
-		Location: 67,24
-		Owner: Neutral
 	BGAttackRallyWP: waypoint
 		Owner: BadGuy
 		Location: 97,45
@@ -1184,15 +1069,155 @@ Actors:
 	Actor107: brik
 		Owner: USSR
 		Location: 38,50
-	EnglandNavyRightExit1: waypoint
+	Actor262: arty
+		Owner: Greece
+		Facing: 896
+		Location: 33,98
+	MCVDst3: waypoint
+		Owner: Neutral
+		Location: 33,100
+	MCVEntry3: waypoint
+		Owner: Neutral
+		Location: 31,102
+	SovietAircraftOrigin1: waypoint
+		Location: 104,45
+		Owner: Neutral
+	SovietAircraftOrigin2: waypoint
+		Location: 104,87
+		Owner: Neutral
+	EnglandLeftEntry: waypoint
+		Location: 64,102
+		Owner: Neutral
+	EnglandRightEntry: waypoint
+		Location: 72,102
+		Owner: Neutral
+	EnglandRightDst: waypoint
 		Location: 74,17
 		Owner: Neutral
-	EnglandNavyRightExit2: waypoint
-		Location: 74,14
+	EnglandLeftWP1: waypoint
+		Location: 68,81
 		Owner: Neutral
-	EnglandNavyLeftExit2: waypoint
+	EnglandLeftWP2: waypoint
+		Location: 80,72
+		Owner: Neutral
+	EnglandLeftWP3: waypoint
+		Location: 81,55
+		Owner: Neutral
+	EnglandLeftWP5: waypoint
+		Location: 66,37
+		Owner: Neutral
+	EnglandLeftWP6: waypoint
+		Location: 67,24
+		Owner: Neutral
+	EnglandRightWP1: waypoint
+		Location: 73,83
+		Owner: Neutral
+	EnglandRightWP2: waypoint
+		Location: 88,72
+		Owner: Neutral
+	EnglandRightWP3: waypoint
+		Location: 86,51
+		Owner: Neutral
+	EnglandRightWP4: waypoint
+		Location: 76,42
+		Owner: Neutral
+	EnglandRightWP5: waypoint
+		Location: 73,37
+		Owner: Neutral
+	EnglandRightWP6: waypoint
+		Location: 74,24
+		Owner: Neutral
+	EnglandLeftExit: waypoint
 		Location: 67,14
 		Owner: Neutral
+	EnglandRightExit: waypoint
+		Location: 74,14
+		Owner: Neutral
+	EnglandLeftDst: waypoint
+		Location: 67,17
+		Owner: Neutral
+	TurkSam1: sam
+		Location: 90,18
+		Owner: Turkey
+		Facing: 384
+	TurkSam2: sam
+		Location: 95,18
+		Owner: Turkey
+		Facing: 768
+	TurkSam3: sam
+		Location: 95,24
+		Owner: Turkey
+		Facing: 640
+	TurkSam4: sam
+		Location: 100,24
+		Owner: Turkey
+		Facing: 640
+	TurkPower1: apwr
+		Location: 91,19
+		Owner: Turkey
+	TurkPower2: apwr
+		Location: 91,23
+		Owner: Turkey
+	TurkPower3: apwr
+		Location: 94,21
+		Owner: Turkey
+	TurkPower4: apwr
+		Location: 97,19
+		Owner: Turkey
+	TurkPower5: apwr
+		Location: 97,22
+		Owner: Turkey
+	TurkPower6: apwr
+		Location: 100,21
+		Owner: Turkey
+	BadGuyFact: fact
+		Location: 96,29
+		Owner: BadGuy
+	Actor199: truk
+		Owner: Greece
+		Facing: 384
+		Location: 95,85
+	Actor200: dome
+		Owner: BadGuy
+		Location: 119,46
+	Actor201: stek
+		Owner: BadGuy
+		Location: 119,49
+	Actor202: apwr
+		Owner: BadGuy
+		Location: 119,42
+	Actor203: apwr
+		Owner: BadGuy
+		Location: 119,36
+	Actor273: e4
+		Owner: USSR
+		ScriptTags: Area Guard
+		Location: 45,51
+		SubCell: 3
+		Facing: 640
+	USSRFtur2: ftur
+		Owner: USSR
+		Location: 45,50
+	USSRFtur1: ftur
+		Owner: USSR
+		Location: 40,50
+	IslandSub3: ss
+		Owner: USSR
+		Location: 70,54
+		Facing: 768
+	IslandSub4: ss
+		Owner: USSR
+		Location: 65,52
+		Facing: 640
+	USSRPower3: apwr
+		Owner: USSR
+		Location: 34,43
+	BridgeToDestroy: waypoint
+		Owner: Neutral
+		Location: 68,53
+	EnglandLeftWP4: waypoint
+		Owner: Neutral
+		Location: 72,54
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

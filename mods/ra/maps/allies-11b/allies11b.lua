@@ -38,11 +38,30 @@ No secondary objective yet
 
 
 TL;DR
-- Change dog locations, add a way for AI to rebuild them to defend against spies
+- Change dog locations, add a way for AI to rebuild (no inf queue usage) them to defend against spies
 - Change top power plants and island fortifications to new player (not USSR and not BadGuy)
 ]]
 
-local StartingCashReserves = { easy = 7000, normal = 6000, hard = 5000, arcade = 5000 }
+local Util = {}
+local Prod = {}
+local Behav = {}
+local BaseB = {}
+
+local IsNaval
+local CheckProductionBuildingReady --??
+local AlertBadGuy
+local CreateZoneTriggers
+local PrepareBadGuyAlerts
+local PrepareMainSubmarines
+local GroupHuntOnDamaged
+local OrderBlockers
+local InitialAlliedReinforcements
+local SendRevengeSub
+local PrepareMammothPatrol
+local OnMammothsDead
+local AlliedMCVArrival
+
+local StartingCashReserves = { easy = 7000, normal = 6000, hard = 5000, challenge = 5000 }
 
 local OnlyOneMCV = { easy = false, normal = false, hard = true, challenge = true }
 
@@ -55,11 +74,17 @@ local EnglandRightEarlyNavy = { actors = { "pt", "pt", "dd", "dd" }, entryPath =
 local EnglandLeftLateNavy = { actors = { "ca" }, entryPath = { EnglandLeftEntry.Location } }
 local EnglandRightLateNavy = { actors = { "ca" }, entryPath = { EnglandRightEntry.Location } }
 
--- CHANGE THIS !!!!
-local SeaLeftPatrolPath = {
-EnglandLeftEntry.Location, WP52.Location, WP53.Location, WP54.Location, WP55.Location, WP56.Location, EnglandLeftDst.Location, EnglandLeftExit.Location }
+---@type cpos[]
+local SeaLeftPatrolPath = 
+{
+EnglandLeftEntry.Location, EnglandLeftWP1.Location, EnglandLeftWP2.Location,
+EnglandLeftWP3.Location, EnglandLeftWP4.Location, EnglandLeftWP5.Location,
+EnglandLeftWP6.Location, EnglandLeftDst.Location, EnglandLeftExit.Location
+}
+
+---@type cpos[]
 local SeaRightPatrolPath =
-{ EnglandRightEntry.Location, WP60.Location, WP61.Location, WP62.Location, WP63.Location, WP64.Location, EnglandRightDst.Location, EnglandRightExit.Location }
+{ EnglandRightEntry.Location, EnglandRightWP1.Location, EnglandRightWP2.Location, EnglandRightWP3.Location, EnglandRightWP4.Location, EnglandRightWP5.Location, EnglandRightWP6.Location, EnglandRightDst.Location, EnglandRightExit.Location }
 
 local SentNavy = false
 local SentCruisers = false
@@ -77,7 +102,7 @@ local function __UTILS__() end
 
 ---@param actor actor
 ---@return boolean
-IsNaval = function(actor)
+function IsNaval(actor)
 	return Utils.Any({ "ca", "dd", "lst", "pt", "ss" }, function(shipType)
 		return actor.Type == shipType
 	end)
@@ -93,7 +118,7 @@ AreIslandTeslasDown = function()
 end
 ]]
 ---CHANGE: For AI. Move it there
-CheckProductionBuildingReady = function()
+function CheckProductionBuildingReady()
 
 	local mainWestStructures = USSR.GetActorsByTypes({ "afld", "barr", "dome", "fact", "proc", "spen", "stek", "weap" })
 
@@ -132,7 +157,7 @@ end
 --------------------------------------------------------------------
 local function __BADGUY_ALERTS__() end
 
-AlertBadGuy = function()
+function AlertBadGuy()
 	if BadGuyAlerted then
 		return
 	end
@@ -140,17 +165,16 @@ AlertBadGuy = function()
 	Media.Debug("BadGuy alerted")
 	
 	-- CHANGE: Move this to .lua AI file
-	BuildBase(BadGuyBaseBlueprints, BGFact, BadGuy)
+	RunBadGuyActivities()
 
 	Trigger.AfterDelay(DateTime.Seconds(20), function()
-		CheckProductionBuildingReady()
-	-- TODO add actual events
+		--CheckProductionBuildingReady()
 	end)
 end
 
 --- Create an imitation of the eastern land area's original zone footprint.
 ---@param action fun()
-CreateZoneTriggers = function(action)
+function CreateZoneTriggers(action)
 	local cells = { CPos.New(93, 36), CPos.New(102, 50), CPos.New(99, 63), CPos.New(99, 81), CPos.New(86, 91), CPos.New(99, 101) }
 	local triggers = { }
 
@@ -170,7 +194,7 @@ end
 
 --- Activate the east base once Allies attack it, land somewhere east of
 --- the river that isn't on Turkey's beach, or do enough damage to USSR.
-PrepareBadGuyAlerts = function()
+function PrepareBadGuyAlerts()
 	CreateZoneTriggers(AlertBadGuy)
 	local eastBase = BadGuy.GetActorsByTypes({ "apwr", "fact", "fcom", "powr", "brik" })
 
@@ -194,7 +218,7 @@ end
 --------------------------------------------------------------------
 local function __OTHER__() end
 
-PrepareMainSubmarines = function()
+function PrepareMainSubmarines()
 	local subs = Utils.Where(USSR.GetActorsByType("ss"), function(sub)
 		return not sub.HasTag("Area Guard")
 	end)
@@ -211,7 +235,7 @@ PrepareMainSubmarines = function()
 	end)
 
 	local islandSubs = { IslandSub1, IslandSub2, IslandSub3, IslandSub4, IslandSub5, IslandSub6, IslandSub7 }
-	Trigger.OnAnyKilled(islandSubs, SendRevengeSub)
+	-- Trigger.OnAnyKilled(islandSubs, SendRevengeSub)
 end
 
 --------------------------------------------------------------------
@@ -224,7 +248,7 @@ end
 local function __ROAD_PATROLS__() end
 
 ---@param actors actor[]
-GroupHuntOnDamaged = function(actors)
+function GroupHuntOnDamaged(actors)
 	local alerted = false
 
 	Utils.Do(actors, function(victim)
@@ -254,7 +278,7 @@ end
 
 ---@param actors actor[]
 ---@param rally? cpos
-OrderBlockers = function(actors, rally)
+function OrderBlockers(actors, rally)
 	Utils.Do(actors, function(a)
 		if not rally then
 			IdleHunt(a)
@@ -274,13 +298,11 @@ OrderBlockers = function(actors, rally)
 	end
 end
 
-local InitialAlliedReinforcements = function()
-	if OnlyOneMCV == false then
+function InitialAlliedReinforcements()
+	if OnlyOneMCV[Difficulty] == false then
 		Trigger.AfterDelay(DateTime.Seconds(1), function()
 			Media.PlaySpeechNotification(Greece, "ReinforcementsArrived")
 			Reinforcements.Reinforce(Greece, McvReinforcements1.actors, McvReinforcements1.entryPath)
-		end)
-		Trigger.AfterDelay(DateTime.Seconds(1), function()
 			Reinforcements.Reinforce(Greece, McvReinforcements2.actors, McvReinforcements2.entryPath)
 		end)
 	else
@@ -341,7 +363,7 @@ local function BuildBlockers(types, producer, rally)
 end
 ]]
 --- Continue sending Submarine hunters once an island Submarine first dies.
-SendRevengeSub = function()
+function SendRevengeSub()
 	local idleSubs = Utils.Where(USSR.GetActorsByType("ss"), function(a)
 		return a.IsIdle and not a.HasTag("Area Guard") end)
 
@@ -354,7 +376,7 @@ SendRevengeSub = function()
 	Trigger.OnKilled(sub, SendRevengeSub)
 end
 
-PrepareMammothPatrol = function()
+function PrepareMammothPatrol()
 	-- The original tanks would Area Guard at each point, but
 	-- that may be unnecessary with their default chase stance.
 	local tanks = { StartMammoth1, StartMammoth2 }
@@ -374,7 +396,7 @@ end
 
 --- Recruit/build teams to guard the road to the USSR base.
 --- Based on triggers blok and blk1 through blk3.
-OnMammothsDead = function()
+function OnMammothsDead()
 	local teams =
 	{
 		{ types = { "3tnk", "v2rl" }, 				rally = MammothPatrolWP1.Location, 	producer = USSRWarFactory },
@@ -406,19 +428,7 @@ end
 --------------------------------------------------------------------
 local function __INTRO_TRIGGERS__() end
 
-AlliedMCVArrival = function()
-	local paths =
-	{
-		-- Unusual but RA '96 did not have single-player undeploys,
-		-- and the second seems intended to go across the river.
-		{ MCVEntry1.Location, MCVDst1.Location },
-		{ MCVEntry2.Location, MCVDst2.Location }
-	}
 
-	Utils.Do(paths, function(path)
-		Reinforcements.Reinforce(Greece, { "mcv" }, path)
-	end)
-end
 
 ------------------------------------------------------------------
 ----------------	ROAD PATROLS - END        --------------------
@@ -430,16 +440,10 @@ InitTriggers = function()
 
 	InitialAlliedReinforcements()
 
-	AISetup()
-
 	PrepareMammothPatrol()
 	PrepareBadGuyAlerts()
 
-	
-
-
 	Trigger.OnTimerExpired(function()
-		FinishTimer()
 		SendNavalUnits()
 		EnglandReinforced = true
 
@@ -461,14 +465,13 @@ InitTriggers = function()
 end
 
 PrepareObjectives = function()
-	--[[
 	Trigger.OnDiscovered(BGFcom, function(actor, discoverer)
 		if discoverer ~= Greece then
 			return
 		end
 		DestroyCommandCenter = AddSecondaryObjective(Greece, "destroy-center-submarine-reinforcements") 
 	end)
-	]]
+
 	Trigger.OnKilledOrCaptured(BGFcom, function()
 		-- Ensure an objective since it is possible to bypass the OnDiscovered.
 		DestroyCommandCenter = DestroyCommandCenter or Greece.AddSecondaryObjective(UserInterface.GetFluentMessage("destroy-center-submarine-reinforcements"))
@@ -513,7 +516,7 @@ PrepareObjectives = function()
 			Media.PlaySpeechNotification(USSR, "MissionAccomplished")
 		end)
 	end)
-	
+
 	Trigger.OnKilledOrCaptured(BGFcom, function()
 		-- Ensure an objective since it is possible to bypass the OnDiscovered.
 		DestroyCommandCenter = DestroyCommandCenter or Greece.AddSecondaryObjective(UserInterface.GetFluentMessage("destroy-center-submarine-reinforcements"))
@@ -523,7 +526,7 @@ PrepareObjectives = function()
 end
 
 --------------------------------------------------------------------
-----------------	ROAD PATROLS - START        --------------------
+--------------------------------------------------------------------
 --------------------------------------------------------------------
 local function __CORE_TRIGGERS__() end
 
@@ -531,7 +534,10 @@ Tick = function()
 	if Greece.HasNoRequiredUnits() then
 		USSR.MarkCompletedObjective(USSRObj)
 	end
-	if Ticked > 0 then
+
+	--UserInterface.SetMissionText( "USSR: " .. tostring(CheckPlayerMoney(USSR)) .. " | BadGuy: " .. tostring(CheckPlayerMoney(BadGuy)) .. " | Turkey: " .. tostring(CheckPlayerMoney(Turkey)), TimerColor)
+
+	--[[if Ticked > 0 then
 		UserInterface.SetMissionText("Naval vessels arrive in " .. Utils.FormatTime(Ticked), TimerColor)
 		Ticked = Ticked - 1
 		if USSR.HasNoRequiredUnits() and BadGuy.HasNoRequiredUnits() and Turkey.HasNoRequiredUnits() then
@@ -541,10 +547,11 @@ Tick = function()
 		FinishTimer()
 		TimerExpiredSendNavy()
 		Ticked = Ticked - 1
-	end
+	end]]
 end
 
 WorldLoaded = function()
+
 	Camera.Position = DefaultCameraPosition.CenterPosition
 
 	Greece = Player.GetPlayer("Greece")
@@ -555,12 +562,8 @@ WorldLoaded = function()
 	Neutral = Player.GetPlayer("Neutral")
 
 	InitTriggers()
-	PrepareObjectives()
+	--PrepareObjectives()
+	SetupAIActivities()
 
-	Trigger.AfterDelay(DateTime.Seconds(5), function()
-		SetupAIActivities()
-	end)
-
-	Ticked = TimerTicks
-	TimerColor = Greece.Color
+	DateTime.TimeLimit = DateTime.Minutes(60)
 end

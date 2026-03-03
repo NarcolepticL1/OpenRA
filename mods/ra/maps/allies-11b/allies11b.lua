@@ -446,6 +446,7 @@ InitTriggers = function()
 	Trigger.OnTimerExpired(function()
 		SendNavalUnits()
 		EnglandReinforced = true
+
 	end)
 
 	FinishTimer = function()

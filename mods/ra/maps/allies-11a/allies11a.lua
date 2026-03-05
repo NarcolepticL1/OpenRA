@@ -42,6 +42,26 @@ TL;DR
 - Change top power plants and island fortifications to new player (not USSR and not BadGuy)
 ]]
 
+local alert = {}
+
+local IsNaval
+local AlertUSSR
+local AlertBadGuy
+local CreateZoneTriggers
+local PrepareBadGuyAlerts
+
+local InitialSovietPatrols
+local InitialSovietWarning
+
+local InitialAlliedReinforcements
+
+local TimerExpiredSendCruisers
+local TimerExpiredSendNavy
+
+local ForwardComDiscovery
+
+---------------------------------------
+
 local StartingCashReserves = { easy = 7000, normal = 6000, hard = 5000, challenge = 5000 }
 
 local OnlyOneMCV = { easy = false, normal = false, hard = true, challenge = true }
@@ -55,14 +75,20 @@ local EnglandRightEarlyNavy = { actors = { "pt", "pt", "dd", "dd" }, entryPath =
 local EnglandLeftLateNavy = { actors = { "ca" }, entryPath = { EnglandLeftEntry.Location } }
 local EnglandRightLateNavy = { actors = { "ca" }, entryPath = { EnglandRightEntry.Location } }
 
+---@type cpos[]
 local SeaLeftPatrolPath = {
-EnglandLeftEntry.Location, WP52.Location, WP53.Location, WP54.Location, WP55.Location, WP56.Location, EnglandLeftDst.Location, EnglandLeftExit.Location }
-local SeaRightPatrolPath =
-{ EnglandRightEntry.Location, WP60.Location, WP61.Location, WP62.Location, WP63.Location, WP64.Location, EnglandRightDst.Location, EnglandRightExit.Location }
+EnglandLeftEntry.Location, EnglandLeftWP1.Location, EnglandLeftWP2.Location, EnglandLeftWP3.Location, EnglandLeftWP4.Location, EnglandLeftWP5.Location, EnglandLeftDst.Location, EnglandLeftExit.Location
+}
+
+---@type cpos[]
+local SeaRightPatrolPath = { 
+EnglandRightEntry.Location, EnglandRightWP1.Location, EnglandRightWP2.Location, EnglandRightWP3.Location, EnglandRightWP4.Location, EnglandRightWP5.Location, EnglandRightDst.Location, EnglandRightExit.Location 
+}
 
 local SentNavy = false
 local SentCruisers = false
 
+-- Remove
 local EdgeOfRiverTriggerActivator =
 {
 	CPos.New(66,19), CPos.New(67,19), CPos.New(68,19), CPos.New(69,19), CPos.New(70,19), CPos.New(71,19),
@@ -79,34 +105,35 @@ local EdgeOfRiverTriggerActivator =
 	CPos.New(96,20), CPos.New(97,20), CPos.New(98,20), CPos.New(99,20), CPos.New(100,20), CPos.New(101,20)
 }
 
-local MmthPatrolPath =
-{
-	MammothPatrolWP1.Location, MammothPatrolWP2.Location, MammothPatrolWP3.Location, MammothPatrolWP4.Location, MammothPatrolWP5.Location,
-	MammothPatrolWP6.Location, MammothPatrolWP7.Location, MammothPatrolWP8.Location, MammothPatrolWP9.Location, MammothPatrolWP10.Location
-}
-
 local USSRBase = {
 	USSRFact, USSRPower1, USSRPower2, USSRPower3, USSRPower4, USSRPower5, USSRPower6, USSRPower7, USSRProc, USSRBarr, USSRWeap,
 	USSRSpen, USSRKenn, USSRAfld1, USSRAfld2, USSRAfld3, USSRAfld4, USSRDome, USSRStek, USSRFtur1, USSRFtur2, USSRTsla1, USSRTsla2
 }
-
-local TimerTicks = DateTime.Minutes(60)
 
 local BadGuyAlerted = false
 local USSRAlerted = false
 
 local FcomDiscovered = false
 
+---@param a actor
+---@return boolean
+function IsNaval(a)
+	return Utils.Any({ "ca", "dd", "lst", "pt", "ss" }, function(shipType)
+		return a.Type == shipType
+	end)
+end
+
 ------------------------------------
------- BADGUY ALERT	START ----------
+------ 	ALERT START	 ---------------
 ------------------------------------
+local function __ALERTS__() end
 -- BadGuy AI can be initiated by:
 -- - Dealing damage to any building (includes "brik")
 -- - Player has land units or structures on the east side of the map
 -- - X time has passed
 -- - USSR player is defeated
 
-local function AlertUSSR()
+function alert.AlertUSSR()
 	if USSRAlerted then
 		return
 	end
@@ -115,7 +142,7 @@ local function AlertUSSR()
 	RunUSSRActivities()
 end
 
-local function AlertBadGuy()
+function alert.AlertBadGuy()
 	if BadGuyAlerted then
 		return
 	end
@@ -124,17 +151,9 @@ local function AlertBadGuy()
 	RunBadGuyActivities()
 end
 
----@param a actor
----@return boolean
-local function IsNaval(a)
-	return Utils.Any({ "ca", "dd", "lst", "pt", "ss" }, function(shipType)
-		return a.Type == shipType
-	end)
-end
-
 --- Create an imitation of the eastern land area's original zone footprint.
 ---@param action fun()
-local function CreateZoneTriggers(action)
+function alert.CreateZoneTriggers(action)
 	local cells = { CPos.New(93, 96), CPos.New(103, 86), CPos.New(87, 69), CPos.New(97, 63), CPos.New(95, 48), CPos.New(102, 31) }
 	local triggers = { }
 
@@ -153,52 +172,55 @@ end
 
 --- Activate the east base once Allies attack it, land somewhere east of
 --- the river that isn't on Turkey's beach, or do enough damage to USSR.
-local function PrepareBadGuyAlerts()
-	CreateZoneTriggers(AlertBadGuy)
+function alert.PrepareBadGuyAlerts()
+	alert.CreateZoneTriggers(alert.AlertBadGuy)
 	local eastBase = BadGuy.GetActorsByTypes({ "apwr", "fact", "fcom", "powr", "brik" })
 
 	OnAnyDamaged(eastBase, function(_, attacker)
 		if attacker.Owner.Faction == "soviet" then
 			return
 		end
-		AlertBadGuy()
+		alert.AlertBadGuy()
 	end)
 
 	local mainWestStructures = USSR.GetActorsByTypes({ "afld", "barr", "dome", "fact", "proc", "spen", "stek", "weap" })
 	Utils.Do(mainWestStructures, function(structure)
-		Trigger.OnKilledOrCaptured(structure, AlertBadGuy)
+		Trigger.OnKilledOrCaptured(structure, alert.AlertBadGuy)
 	end)
 end
 
-------------------------------------
------- BADGUY ALERT	END		--------
-------------------------------------
-
-local function InitialSovietPatrols()
+function InitialSovietPatrols()
 	local mmt_patrol = { mmth1, mmth2 }
+	local path_patrol = {
+	MammothPatrolWP1.Location, MammothPatrolWP2.Location, MammothPatrolWP3.Location,
+	MammothPatrolWP4.Location, MammothPatrolWP5.Location, MammothPatrolWP6.Location,
+	MammothPatrolWP7.Location, MammothPatrolWP8.Location, MammothPatrolWP9.Location, 
+	MammothPatrolWP10.Location
+}
 
 	Utils.Do(mmt_patrol, function(t)
-		mmth1.Patrol(MmthPatrolPath, true, DateTime.Seconds(12))
-		mmth2.Patrol(MmthPatrolPath, true, DateTime.Seconds(12))
+		mmth1.Patrol(path_patrol, true, DateTime.Seconds(12))
+		mmth2.Patrol(path_patrol, true, DateTime.Seconds(12))
 	end)
 
 	OnAnyDamaged(mmt_patrol, function(victim, attacker)
 		if victim.Health < victim.MaxHealth * 0.75 and attacker.Owner == Greece then
 			victim.Stance = "AttackAnything"
-			AlertUSSR()
+			--Trigger.ClearAll(victim)
+			alert.AlertUSSR()
 		end
 	end)
 end
 
-local function InitialSovietWarning()
+function InitialSovietWarning()
 	OnAnyDamaged(USSRBase, function(victim, attacker)
 		if victim.Health < victim.MaxHealth * 0.75 and attacker.Owner == Greece then
-			AlertUSSR()
+			alert.AlertUSSR()
 		end
 	end)
 end
 
-local function InitialAlliedReinforcements()
+function InitialAlliedReinforcements()
 	if OnlyOneMCV == false then
 		Trigger.AfterDelay(DateTime.Seconds(1), function()
 			Media.PlaySpeechNotification(Greece, "ReinforcementsArrived")
@@ -212,7 +234,7 @@ local function InitialAlliedReinforcements()
 	end
 end
 
-local function TimerExpiredSendCruisers()
+function TimerExpiredSendCruisers()
 	if SentCruisers then
 		return
 	end
@@ -252,7 +274,7 @@ local function TimerExpiredSendCruisers()
 	end)
 end
 
-local function TimerExpiredSendNavy()
+function TimerExpiredSendNavy()
 	if SentNavy then
 		return
 	end
@@ -285,19 +307,7 @@ local function TimerExpiredSendNavy()
 	Trigger.AfterDelay(DateTime.Seconds(10), TimerExpiredSendCruisers)
 end
 
-local function FinishTimer()
-	for i = 0, 9, 1 do
-		local c = TimerColor
-		if i % 2 == 0 then
-			c = HSLColor.White
-		end
-		Trigger.AfterDelay(DateTime.Seconds(i), function() UserInterface.SetMissionText("Naval vessels have arrived!", c) end)
-	end
-	Trigger.AfterDelay(DateTime.Seconds(10), function() UserInterface.SetMissionText("") end)
-	Trigger.AfterDelay(DateTime.Seconds(2), TimerExpiredSendNavy)
-end
-
-local function FComDiscovery()
+function ForwardComDiscovery()
 	Trigger.OnDiscovered(BGFcom, function(_, discoverer)
 		if discoverer ~= Greece then
 			return
@@ -311,6 +321,11 @@ local function FComDiscovery()
 	end)
 end
 
+------------------------------------------------------------------
+------------------------------------------------------------------
+------------------------------------------------------------------
+local function __MAIN_TRIGGERS__() end -- Used as marker for outliner. Remove when ready
+
 InitTriggers = function()
 	Greece.Cash = StartingCashReserves[Difficulty]
 
@@ -319,12 +334,14 @@ InitTriggers = function()
 	InitialSovietPatrols()
 	InitialSovietWarning()
 
-	PrepareBadGuyAlerts()
-	FComDiscovery()
-
+	alert.PrepareBadGuyAlerts()
 	Trigger.AfterDelay(AlertUSSRDelay, function()
-		AlertUSSR()
+		alert.AlertUSSR()
 	end)
+
+	ForwardComDiscovery()
+
+	Trigger.OnTimerExpired(TimerExpiredSendNavy)
 end
 
 PrepareObjectives = function()
@@ -350,23 +367,16 @@ PrepareObjectives = function()
 		DestroyCommandCenter = DestroyCommandCenter or Greece.AddSecondaryObjective(UserInterface.GetFluentMessage("destroy-center-submarine-reinforcements"))
 		Greece.MarkCompletedObjective(DestroyCommandCenter)
 	end)
-
 end
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+local function __CORE_TRIGGERS__() end -- Used as marker for outliner. Remove when ready
 
 Tick = function()
 	if Greece.HasNoRequiredUnits() then
 		USSR.MarkCompletedObjective(USSRObj)
-	end
-	if Ticked > 0 then
-		UserInterface.SetMissionText("Naval vessels arrive in " .. Utils.FormatTime(Ticked), TimerColor)
-		Ticked = Ticked - 1
-		if USSR.HasNoRequiredUnits() and BadGuy.HasNoRequiredUnits() and Turkey.HasNoRequiredUnits() then
-			Ticked = 0
-		end
-	elseif Ticked == 0 then
-		FinishTimer()
-		TimerExpiredSendNavy()
-		Ticked = Ticked - 1
 	end
 end
 
@@ -381,12 +391,20 @@ WorldLoaded = function()
 	Neutral = Player.GetPlayer("Neutral")
 
 	InitTriggers()
-	PrepareObjectives()
+	--PrepareObjectives()
+
+	SetupAIActivities()
+	--CheckBeachGuardVacancy()
+	--D(BeachGuardPositions[1].location)
+	--D(BeachGuardPositions[2].location)
+	--D(BeachGuardPositions[3].location)
+	--D(BeachGuardPositions[4].location)
+	--D(Actor328.Location)
 
 	Trigger.AfterDelay(DateTime.Seconds(5), function()
-		SetupAIActivities()
+		VehicleUSSRAttackGroup = { Actor338, Actor339 }
 	end)
+	Trigger.AfterDelay(DateTime.Seconds(10), TransportGroup)
 
-	Ticked = TimerTicks
-	TimerColor = Greece.Color
+	DateTime.TimeLimit = DateTime.Minutes(60)
 end

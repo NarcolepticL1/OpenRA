@@ -1043,9 +1043,6 @@ Actors:
 	DefaultCameraPosition: waypoint
 		Location: 25,96
 		Owner: Neutral
-	waypoint99: waypoint
-		Location: 68,61
-		Owner: Neutral
 	EnglandRightDst: waypoint
 		Location: 92,25
 		Owner: Neutral
@@ -1100,12 +1097,6 @@ Actors:
 	MCVDst1: waypoint
 		Location: 22,100
 		Owner: Neutral
-	WP17: waypoint
-		Location: 39,95
-		Owner: Neutral
-	WP16: waypoint
-		Location: 42,87
-		Owner: Neutral
 	WP96: waypoint
 		Location: 82,19
 		Owner: Neutral
@@ -1129,50 +1120,6 @@ Actors:
 		Owner: Turkey
 	IslandTsla6: tsla
 		Location: 79,47
-		Owner: Turkey
-	BGOutPower1: apwr
-		Location: 39,22
-		Owner: Turkey
-	BGOutPower2: apwr
-		Location: 39,27
-		Owner: Turkey
-	BGOutPower3: apwr
-		Location: 42,25
-		Owner: Turkey
-	BGOutPower4: apwr
-		Location: 44,22
-		Owner: Turkey
-	BGOutPower5: apwr
-		Location: 44,28
-		Owner: Turkey
-	BGOutPower6: apwr
-		Location: 47,24
-		Owner: Turkey
-	BGOutPower7: apwr
-		Location: 50,22
-		Owner: Turkey
-	BGOutPower8: apwr
-		Location: 50,27
-		Owner: Turkey
-	BGOutSam1: sam
-		Location: 37,22
-		Facing: 384
-		Owner: Turkey
-	BGOutSam2: sam
-		Location: 37,31
-		Facing: 512
-		Owner: Turkey
-	BGOutSam3: sam
-		Location: 45,31
-		Facing: 512
-		Owner: Turkey
-	BGOutSam4: sam
-		Location: 53,31
-		Facing: 512
-		Owner: Turkey
-	BGOutSam5: sam
-		Location: 53,22
-		Facing: 768
 		Owner: Turkey
 	USSRStek: stek
 		Location: 48,42
@@ -1225,36 +1172,6 @@ Actors:
 	BadGuyFact: fact
 		Location: 100,47
 		Owner: BadGuy
-	WP52: waypoint
-		Location: 67,91
-		Owner: Neutral
-	WP53: waypoint
-		Location: 69,72
-		Owner: Neutral
-	WP54: waypoint
-		Location: 69,65
-		Owner: Neutral
-	WP55: waypoint
-		Location: 68,53
-		Owner: Neutral
-	WP56: waypoint
-		Location: 68,38
-		Owner: Neutral
-	WP60: waypoint
-		Location: 75,91
-		Owner: Neutral
-	WP61: waypoint
-		Location: 75,72
-		Owner: Neutral
-	WP62: waypoint
-		Location: 77,65
-		Owner: Neutral
-	WP63: waypoint
-		Location: 78,53
-		Owner: Neutral
-	WP64: waypoint
-		Location: 94,41
-		Owner: Neutral
 	mmth1: 4tnk
 		Location: 60,58
 		Owner: USSR
@@ -1286,12 +1203,6 @@ Actors:
 	BGFcom: fcom
 		Location: 97,53
 		Owner: BadGuy
-	Actor411: waypoint
-		Owner: Neutral
-		Location: 67,105
-	Actor412: waypoint
-		Owner: Neutral
-		Location: 76,105
 	Actor349: dog
 		Owner: USSR
 		SubCell: 2
@@ -1383,6 +1294,110 @@ Actors:
 		SubCell: 5
 		Facing: 256
 		Location: 95,54
+	EnglandLeftWP1: waypoint
+		Location: 67,91
+		Owner: Neutral
+	EnglandRightWP1: waypoint
+		Location: 75,91
+		Owner: Neutral
+	EnglandRightWP2: waypoint
+		Location: 75,72
+		Owner: Neutral
+	EnglandRightWP3: waypoint
+		Location: 77,65
+		Owner: Neutral
+	EnglandRightWP4: waypoint
+		Location: 78,53
+		Owner: Neutral
+	EnglandRightWP5: waypoint
+		Location: 94,41
+		Owner: Neutral
+	USSRAtkWP1: waypoint
+		Owner: Neutral
+		Location: 47,75
+	USSRAtkWP2: waypoint
+		Owner: Neutral
+		Location: 40,101
+	BadGuyAtkWP1: waypoint
+		Owner: Neutral
+		Location: 98,61
+	EnglandLeftWP2: waypoint
+		Location: 69,72
+		Owner: Neutral
+	EnglandLeftWP3: waypoint
+		Location: 69,65
+		Owner: Neutral
+	EnglandLeftWP4: waypoint
+		Location: 68,53
+		Owner: Neutral
+	EnglandLeftWP5: waypoint
+		Location: 68,38
+		Owner: Neutral
+	Actor286: lst
+		Owner: USSR
+		Location: 63,47
+		Facing: 384
+	LstStart: waypoint
+		Owner: Neutral
+		Location: 61,48
+	LstDst: waypoint
+		Owner: Neutral
+		Location: 63,72
+	TransportPoint: waypoint
+		Owner: Neutral
+		Location: 59,48
+	TurkPower1: apwr
+		Location: 39,22
+		Owner: Turkey
+	TurkPower2: apwr
+		Location: 39,27
+		Owner: Turkey
+	TurkPower3: apwr
+		Location: 42,25
+		Owner: Turkey
+	TurkPower4: apwr
+		Location: 44,22
+		Owner: Turkey
+	TurkPower5: apwr
+		Location: 44,28
+		Owner: Turkey
+	TurkPower6: apwr
+		Location: 47,24
+		Owner: Turkey
+	TurkPower7: apwr
+		Location: 50,22
+		Owner: Turkey
+	TurkPower8: apwr
+		Location: 50,27
+		Owner: Turkey
+	TurkSam1: sam
+		Location: 37,22
+		Facing: 384
+		Owner: Turkey
+	TurkSam2: sam
+		Location: 37,31
+		Facing: 512
+		Owner: Turkey
+	TurkSam3: sam
+		Location: 45,31
+		Facing: 512
+		Owner: Turkey
+	TurkSam4: sam
+		Location: 53,31
+		Facing: 512
+		Owner: Turkey
+	TurkSam5: sam
+		Location: 53,22
+		Facing: 768
+		Owner: Turkey
+	Cruiser1: ca
+		Owner: Neutral
+		Location: 67,105
+		Facing: 0
+	Cruiser2: ca
+		Owner: Neutral
+		Location: 76,105
+		Facing: 0
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

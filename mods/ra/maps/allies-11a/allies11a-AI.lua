@@ -64,7 +64,8 @@ end
 --------------------------------------------------------------------
 -----------------	    DATA BLOCK - START	------------------------
 --------------------------------------------------------------------
-local function ______DATA______() end
+local function ______DATA______() end -- Used as marker for outliner. Remove when ready
+
 
 ------------------------------
 --- Difficulty Start --------
@@ -228,25 +229,12 @@ BeachGuardPositions	= {
 	{ group = { }, location = CPos.New(60, 70) - CVec.New(-2, 0) }	--
 }
 
--------------------------
--- Naval Attacks Data  --
--------------------------
-
-local SubTypes = { "ss"}
-local SubAttackGroup = { }
-local SubAttackGroupSize = 2
-local NavalAtkPath = { }
-
-LSTDetectionPivot = USSRSpen
-LSTDetectionRange = WDist.FromCells(5)
-
 -----------------------
 -- Air Attacks Data  --
 -----------------------
 
 local CurrentAirWave = 1
 local BasePlanes = {}
-local TotalAflds = {}
 
 local AircraftTypes = { "yak", "mig" }
 local PlanesAttackGroup = { }
@@ -260,6 +248,23 @@ local SovietAirTeams = {
 	{ types = { "mig", "mig", "mig", "yak", "yak", "yak", "yak" }, interval = DateTime.Seconds(210), path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1	.Location + CVec.New(-1, 0) } }
 }
 
+-------------------------
+-- Naval Attacks Data  --
+-------------------------
+
+local SubTypes = { "ss"}
+
+local SubUSSRAttackGroupSize = 2
+local SubUSSRAttackGroup = { }
+
+local SubBadGuyAttackGroupSize = 2
+local SubBadGuyAttackGroup = { }
+
+local NavalAtkPath = { }
+
+LSTDetectionPivot = USSRSpen
+LSTDetectionRange = WDist.FromCells(5)
+
 --------------------------------------------------------------------
 -----------------	    DATA BLOCK - END	------------------------
 --------------------------------------------------------------------
@@ -267,7 +272,8 @@ local SovietAirTeams = {
 --------------------------------------------------------------------
 -----------------	UTILS BLOCK - START	----------------------------
 --------------------------------------------------------------------
-local function ________________UTILS________________() end
+local function ________________UTILS________________() end -- Used as marker for outliner. Remove when ready
+
 
 ---@param owner player
 function IsHarvesterMissing(owner)
@@ -338,7 +344,8 @@ end
 --------------------------------------------------------------------
 -----------------	BASE MANAGEMENT BLOCK - START	----------------
 --------------------------------------------------------------------
-local function ________________BASE_MANAGEMENT________________() end
+local function ________________BASE_MANAGEMENT________________() end -- Used as marker for outliner. Remove when ready
+
 
 ---@param blueprints blueprint[]
 ---@param cyard any
@@ -489,7 +496,8 @@ end
 --------------------------------------------------------------------
 ----------------		ATTACKING BLOCK - START	--------------------
 --------------------------------------------------------------------
-local function ________________AI_ATTACKS________________() end
+local function ________________AI_ATTACKS________________() end -- Used as marker for outliner. Remove when ready
+
 
 local function SetCombatRole()
 	if CheckBeachGuardVacancy() and CombatRole == "regular" then
@@ -525,7 +533,8 @@ end
 -----------------------
 --- Inf Attacks     ---
 -----------------------
-local function ________________Inf_Attacks________________() end
+local function ________________Inf_Attacks________________() end -- Used as marker for outliner. Remove when ready
+
 
 ---@param producer actor
 ---@param owner player
@@ -572,20 +581,11 @@ function ProduceInfantry(producer, owner)
 	end)
 end
 
-function ProduceLST(producer, owner)
-	local toBuilt = { "lst" }
-
-	if not ProducerTypeAvailableCheck(producer, owner) then
-		owner.Build(toBuilt, function(units)
-	
-		end)
-	end
-end
-
 -----------------------
 --- Armor Attacks   ---
 -----------------------
-local function ________________Tank_Attacks________________() end
+local function ________________Tank_Attacks________________() end -- Used as marker for outliner. Remove when ready
+
 
 ---@param producer actor
 ---@param owner player
@@ -684,8 +684,10 @@ function SetGuardPoint(index)
 	end)
 end
 
+--FetchUnitsToTransport(units, load_loc)
+
 ---@param units actor[]
-function TransportGroup(units)
+function FetchUnitsToTransport(units, load_loc)
 	local lst = FindLstInArea(LSTDetectionPivot)
 
 	if not lst then
@@ -693,7 +695,7 @@ function TransportGroup(units)
 		return
 	end
 
-	lst.Move(LstStart.Location)
+	lst.Move(load_loc.Location)
 
 	Utils.Do(units, function(u)
 		if not u.IsDead then
@@ -713,7 +715,7 @@ function TransportGroup(units)
 		if lst.PassengerCount == 0 then
 			return
 		end
-		lst.UnloadPassengers(LstDst.Location)
+		SendLSTAlt(lst, LSTPathRoute)
 	end)
 end
 
@@ -725,51 +727,13 @@ end
 -----------------------
 --- Air Attacks     ---
 -----------------------
-local function ________________Air_Attacks________________() end
+local function ________________Air_Attacks________________() end -- Used as marker for outliner. Remove when ready
 
 ---@return actor[]
 ---@param owner player
 function CountAflds(owner)
 	local aflds = owner.GetActorsByType("afld")
 	return aflds
-end
-
-
-local function GetAirstrikeTarget()
-	local list = Greece.GetGroundAttackers()
-
-	if #list == 0 then
-		return
-	end
-	
-	local target = list[DateTime.GameTime % #list + 1].CenterPosition
-	return target
-end
-
-local function SendAirstrike()
-	if USSRAfld1.IsDead or USSRAfld1.Owner ~= USSR then
-		return
-	end
-	local target = GetAirstrikeTarget()
-
-	if target then
-		USSRAfld1.TargetAirstrike(target, Angle.SouthWest + Angle.New(16))
-		Trigger.AfterDelay(DateTime.Seconds(4), SendAirstrike)
-	else
-		Trigger.AfterDelay(DateTime.Seconds(4)/4, SendAirstrike)
-	end
-end
-
----@param unit actor
----@param route cpos[]
-local function SendRenAirstrike(unit, route)
-	if (USSRAfld1.IsDead or USSRAfld1.Owner ~= USSR) and (USSRAfld2.IsDead or USSRAfld2.Owner ~= USSR) and (USSRAfld3.IsDead or USSRAfld3.Owner ~= USSR) and (USSRAfld4.IsDead or USSRAfld4.Owner ~= USSR) then
-		return
-	end
-	local attackers = Reinforcements.Reinforce(USSR, unit, route)
-	for i = 1, #attackers do
-		InitializeAttackAircraft(attackers[i], Greece)
-	end
 end
 
 ---@param producer actor
@@ -795,6 +759,29 @@ local function ProduceAircraft(producer, owner)
 		end)
         InitializeAttackAircraft(plane, Greece)
     end)
+end
+
+local function GetAirstrikeTarget()
+	local list = Greece.GetGroundAttackers()
+
+	if #list == 0 then
+		return
+	end
+	
+	local target = list[DateTime.GameTime % #list + 1].CenterPosition
+	return target
+end
+
+---@param unit actor
+---@param route cpos[]
+local function SendRenAirstrike(unit, route)
+	if (USSRAfld1.IsDead or USSRAfld1.Owner ~= USSR) and (USSRAfld2.IsDead or USSRAfld2.Owner ~= USSR) and (USSRAfld3.IsDead or USSRAfld3.Owner ~= USSR) and (USSRAfld4.IsDead or USSRAfld4.Owner ~= USSR) then
+		return
+	end
+	local attackers = Reinforcements.Reinforce(USSR, unit, route)
+	for i = 1, #attackers do
+		InitializeAttackAircraft(attackers[i], Greece)
+	end
 end
 
 --Out of map attacks
@@ -895,7 +882,7 @@ function ScheduleAirWave(wave)
 				if unit.AmmoCount() > 0 then
 					table.insert(BasePlanes, unit)
 					return
-				elseif HasAirfield(unit.Owner) and #BasePlanes < #TotalAflds then
+				elseif HasAirfield(unit.Owner) and #BasePlanes < #CountAflds(unit.Owner) then
 					return
 				end
 				OnAircraftStranded(unit, team.path[1])
@@ -908,11 +895,13 @@ function ScheduleAirWave(wave)
 				return
 			end
 
+			-- Activate this at a later point
 			--[[
 			if team.onWaveDefeated then
 				team.onWaveDefeated()
 			end
 			]]
+
 			CurrentAirWave = CurrentAirWave + 1
 			ScheduleAirWave(CurrentAirWave)
 		end)
@@ -922,33 +911,66 @@ end
 -----------------------
 --- Naval Attacks   ---
 -----------------------
-local function ________________Naval_Attacks________________() end
+local function ________________Naval_Attacks________________() end -- Used as marker for outliner. Remove when ready
+
 ---@param producer actor
 ---@param owner player
 function ProduceSubs(producer, owner)
 	if not ProducerTypeAvailableCheck(producer, owner) then
-		return
+        return
+	elseif CheckPlayerMoney(owner) <= 299 and IsHarvesterMissing(owner) then
+        return
 	end
 
 	local delay = Utils.RandomInteger(DateTime.Seconds(12), DateTime.Seconds(17))
 
-	owner.Build(SubTypes, function(units)
-		table.insert(SubAttackGroup, units[1])
-
-		if #SubAttackGroup >= SubAttackGroupSize then
-			SendUnits(SubAttackGroup, NavalAtkPath)
-			SubAttackGroup = { }
-			Trigger.AfterDelay(AtkProductionInterval, function()
-				ProduceSubs(producer, owner)
-			end)
+	local toBuild = { Utils.Random(SubTypes) }
+	local path = { }
+	owner.Build(toBuild, function(units)
+		if owner == USSR then
+			table.insert(SubUSSRAttackGroup, units[1])
+			if #SubUSSRAttackGroup >= SubUSSRAttackGroupSize then
+				SendUnits(SubUSSRAttackGroup, NavalAtkPath)
+				SubUSSRAttackGroup = { }
+				Trigger.AfterDelay(AtkProductionInterval, function()
+					ProduceSubs(producer, owner)
+				end)
+			else
+				Trigger.AfterDelay(delay, function()
+					ProduceSubs(producer, owner)
+				end)
+			end
 		else
-			Trigger.AfterDelay(delay, function()
-				ProduceSubs(producer, owner)
-			end)
+			table.insert(SubBadGuyAttackGroup, units[1])
+			if #SubBadGuyAttackGroup >= SubBadGuyAttackGroupSize then
+				SendUnits(SubBadGuyAttackGroup, NavalAtkPath)
+				SubBadGuyAttackGroup = { }
+				Trigger.AfterDelay(AtkProductionInterval, function()
+					ProduceSubs(producer, owner)
+				end)
+			else
+				Trigger.AfterDelay(delay, function()
+					ProduceSubs(producer, owner)
+				end)
+			end
+
 		end
 	end)
 end
 
+---@param producer actor
+---@param owner player
+function ProduceLST(producer, owner)
+	local toBuilt = { "lst" }
+
+	if not ProducerTypeAvailableCheck(producer, owner) then
+		owner.Build(toBuilt, function(units)
+
+		end)
+	end
+end
+
+---@return actor|nil
 ---@param waypoint actor
 function FindLstInArea(waypoint)
 	local CenterPos = waypoint.CenterPosition
@@ -962,16 +984,88 @@ function FindLstInArea(waypoint)
 	end
 end
 
-function ProduceLST(producer, owner)
-	local toBuilt = { "lst" }
+PrepareAttackOptions = function()
 
-	if not ProducerTypeAvailableCheck(producer, owner) then
-		owner.Build(toBuilt, function(units)
-	
-		end)
+end
+
+---@param producer actor
+---@param owner player
+PrepareNavalAtk = function(producer, owner)
+	PrepareAttackOptions()
+
+	if NavalAtkType == "lst" and #owner.GetActorsByType("lst") < 2 then
+		ProduceLST(producer, owner)
+	else
+		ProduceSubs(producer, owner)
 	end
 end
 
+LSTPathRoute = { USSRSpen.Location, LstDst.Location }
+
+-- Similar to "SendUnits" but for lst unload passengers at last waypoint and going back following the same path. ATTEMPT 1
+---@param lst actor
+---@param path cpod[]
+function SendLST(lst, path)
+	local path = 
+	Utils.Do
+end
+
+-- Similar to "SendUnits" but for lst unload passengers at last waypoint and going back following the same path. ATTEMPT 2
+---@param lst actor
+---@param path cpos[]
+function SendLSTAlt(lst, path)
+	local go_path = path
+	local return_path = ReverseTable(path)
+
+	Trigger.OnIdle(lst, function()
+		if not lst.IsDead then
+			if FindLstInArea(USSRSpen) then
+				Utils.Do(path, function(p)
+					lst.Move(p)
+				end)
+				--Trigger.Clear(lst, "OnIdle")
+			else
+				lst.UnloadPassengers(path[#path])
+				Utils.Do(return_path, function(p)
+					lst.Move(p)
+				end)
+				Trigger.Clear(lst, "OnIdle")
+			end
+		end
+	end)
+end
+
+---@param array cpos[]
+---@return cpos[]
+function ReverseTable(array)
+	local table_to_reverse = array
+	local reversed_table = { }
+
+	for i = #table_to_reverse, 1, -1 do
+		--D(table_to_reverse[i])
+    	table.insert(reversed_table, table_to_reverse[i])
+		--D(reversed_table[i])
+	end
+	return reversed_table
+end
+
+--SendLSTAlt(Actor286, LSTPathRoute)
+
+---@param units actor[]
+---@param path cpos[]
+local function SendUnits(units, path)
+	Utils.Do(units, function(unit)
+		if unit.IsDead then
+			return
+		end
+
+		unit.Patrol(path, false)
+		IdleHunt(unit)
+	end)
+end
+
+
+-- Costant out of map attack if eastern Forward Command is not dead
 function EnemySubsReinforcements()
     if BGFcom.IsDead then
 		return
@@ -1012,7 +1106,8 @@ end
 --------------------------------------------------------------------
 ----------------		ATTACKING BLOCK - END	--------------------
 --------------------------------------------------------------------
-local function ________________AI_SETUP________________() end
+local function ________________AI_SETUP________________() end -- Used as marker for outliner. Remove when ready
+
 
 function SetupAIActivities()
 	USSRCashReserve = USSRCashReserves[Difficulty]
@@ -1020,6 +1115,8 @@ function SetupAIActivities()
 
 	USSR.Cash = USSRCashReserve
     BadGuy.Cash = BadGuyCashReserve
+
+	--ReverseTable(LSTPathRoute)
 
 	AtkProductionInterval = AtkProductionIntervals[Difficulty]
 
@@ -1029,6 +1126,9 @@ function SetupAIActivities()
     --Turkey.Cash = 5000
 
 	--AlertUSSRDelay = AlertUSSRDelays[Difficulty]
+	Trigger.AfterDelay(DateTime.Minutes(1), function()
+		SendLSTAlt(Actor286, LSTPathRoute)
+	end)
 
 	BeginBaseMaintenance(USSRBaseBlueprints, USSR)
 	BeginBaseMaintenance(BadGuyBaseBlueprints, BadGuy)
@@ -1041,9 +1141,9 @@ function SetupAIActivities()
 	--	EnemySubsReinforcements()
 	--end)
 
-	--Trigger.AfterDelay(DateTime.Minutes(2), function()
-	--	PrepareAircraftReinforcements()
-	--end)
+	Trigger.AfterDelay(DateTime.Minutes(2), function()
+		PrepareAircraftReinforcements()
+	end)
 end
 
 -- Activated once USSR is alerted
@@ -1051,14 +1151,13 @@ function RunUSSRActivities()
 
 	Trigger.AfterDelay(DateTime.Seconds(1), function()
 		--InsertBlueprints(USSRBaseBlueprints, USSRBaseSamsBlueprints)
-		--BuildBase(USSRBaseBlueprints, USSRFact, USSR)
 	end)
 
+	ProduceInfantry(USSRBarr, USSR)
 	--Trigger.AfterDelay(DateTime.Minutes(2), function()
 		ProduceArmor(USSRWeap, USSR)
 	--end)
 
-	--ProduceInfantry(USSRBarr, USSR)
 	--ProduceSubs(USSRSpen, USSR)
 end
 

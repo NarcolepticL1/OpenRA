@@ -1333,16 +1333,6 @@ Actors:
 	EnglandLeftWP5: waypoint
 		Location: 68,38
 		Owner: Neutral
-	Actor286: lst
-		Owner: USSR
-		Location: 63,47
-		Facing: 384
-	LstStart: waypoint
-		Owner: Neutral
-		Location: 61,48
-	LstDst: waypoint
-		Owner: Neutral
-		Location: 63,72
 	TransportPoint: waypoint
 		Owner: Neutral
 		Location: 59,48
@@ -1398,6 +1388,16 @@ Actors:
 		Owner: Neutral
 		Location: 76,105
 		Facing: 0
+	Actor286: lst
+		Owner: USSR
+		Location: 63,47
+		Facing: 384
+	LstLoad: waypoint
+		Owner: Neutral
+		Location: 61,48
+	LstDst: waypoint
+		Owner: Neutral
+		Location: 86,66
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

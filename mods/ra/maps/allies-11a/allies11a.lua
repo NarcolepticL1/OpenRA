@@ -126,7 +126,8 @@ end
 ------------------------------------
 ------ 	ALERT START	 ---------------
 ------------------------------------
-local function __ALERTS__() end
+local function __ALERTS__() end -- Used as marker for outliner. Remove when ready
+
 -- BadGuy AI can be initiated by:
 -- - Dealing damage to any building (includes "brik")
 -- - Player has land units or structures on the east side of the map
@@ -334,10 +335,10 @@ InitTriggers = function()
 	InitialSovietPatrols()
 	InitialSovietWarning()
 
-	alert.PrepareBadGuyAlerts()
-	Trigger.AfterDelay(AlertUSSRDelay, function()
-		alert.AlertUSSR()
-	end)
+	--alert.PrepareBadGuyAlerts()
+	--Trigger.AfterDelay(AlertUSSRDelay, function()
+		--alert.AlertUSSR()
+	--end)
 
 	ForwardComDiscovery()
 
@@ -401,10 +402,6 @@ WorldLoaded = function()
 	--D(BeachGuardPositions[4].location)
 	--D(Actor328.Location)
 
-	Trigger.AfterDelay(DateTime.Seconds(5), function()
-		VehicleUSSRAttackGroup = { Actor338, Actor339 }
-	end)
-	Trigger.AfterDelay(DateTime.Seconds(10), TransportGroup)
 
 	DateTime.TimeLimit = DateTime.Minutes(60)
 end

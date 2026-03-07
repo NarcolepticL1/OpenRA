@@ -285,26 +285,30 @@ function TimerExpiredSendCruisers()
 	end
 	SentCruisers = true
 	Trigger.AfterDelay(DateTime.Seconds(10), function()
+		local cruisers = {}
+		
 		local left_ca = Reinforcements.Reinforce(England, EnglandLeftLateNavy.actors, EnglandLeftLateNavy.entryPath)[1]
+		table.insert(cruisers, left_ca)
 		Utils.Do(SeaLeftPatrolPath, function(wp)
 			Trigger.OnAddedToWorld(left_ca, function()
 				left_ca.Move(wp)
 			end)
-			Trigger.OnKilled(left_ca, function()
-				Media.PlaySpeechNotification(Greece, "AlliedForcesFallen")
-				USSR.MarkCompletedObjective(USSRObj)
-			end)
 		end)
 		local right_ca = Reinforcements.Reinforce(England, EnglandRightLateNavy.actors, EnglandRightLateNavy.entryPath)[1]
+		table.insert(cruisers, right_ca)
 		Utils.Do(SeaRightPatrolPath, function(wp)
 			Trigger.OnAddedToWorld(right_ca, function()
 				right_ca.Move(wp)
 			end)
-			Trigger.OnKilled(right_ca, function()
-				Media.PlaySpeechNotification(Greece, "AlliedForcesFallen")
+		end)
+
+		Trigger.OnAnyKilled(cruisers, function()
+			Media.PlaySpeechNotification(Greece, "AlliedForcesFallen")
+			Trigger.AfterDelay(DateTime.Seconds(2), function()
 				USSR.MarkCompletedObjective(USSRObj)
 			end)
 		end)
+
 		local count = 0
 		Trigger.OnEnteredFootprint(EdgeOfRiverTriggerActivator, function(a, id)
 			if a.Owner == England and a.Type =="ca" then
@@ -385,7 +389,7 @@ PrepareObjectives = function()
 
 	ClearNavalChannel = AddPrimaryObjective(Greece, "clear-the-naval-channel")
 
-	DenyAllies = AddPrimaryObjective(USSR, "Eliminate all Allied forces.")
+	USSRObj = AddPrimaryObjective(USSR, "Eliminate all Allied forces.")
 
 	Trigger.OnPlayerLost(Greece, function()
 		Trigger.AfterDelay(DateTime.Seconds(1), function()
@@ -422,8 +426,7 @@ Tick = function()
 			TimerExpiredSendNavy()
 		end
 	end
-
-	UserInterface.SetMissionText("USSR: " .. tostring(USSR.Cash) .. " | " .. "BadGuy: " .. tostring(BadGuy.Cash)  )
+	--UserInterface.SetMissionText("USSR: " .. tostring(USSR.Cash) .. " | " .. "BadGuy: " .. tostring(BadGuy.Cash)  )
 end
 
 WorldLoaded = function()
@@ -443,5 +446,5 @@ WorldLoaded = function()
 	SetupAIActivities()
 
 	TimerColor = Player.GetPlayer("Greece").Color
-	DateTime.TimeLimit = DateTime.Minutes(60)
+	DateTime.TimeLimit = DateTime.Minutes(1) --60
 end

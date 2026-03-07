@@ -14,6 +14,7 @@ local Base = {}
 
 ------ UTILS ------
 local IsNaval
+local IsAircraft
 local IsBuilding
 local IsHarvesterMissing
 local CheckPlayerMoney
@@ -197,11 +198,13 @@ local InfantryBadGuyAttackGroup = { }
 local CombatRole = "regular" -- "regular", "guard", "marine"
 
 ---@type { group: string[], location: cpos }[]
-BeachGuardPositions	= {
+BeachGuardPositions = {
 	{ group = { }, location = CPos.New(62, 58) },
     { group = { }, location = CPos.New(60, 64) },
     { group = { }, location = CPos.New(62, 70) }
 }
+
+local BeachGuardRandomPositions	= Utils.Shuffle(BeachGuardPositions)
 
 -----------------------
 -- Air Attacks Data  --
@@ -213,12 +216,11 @@ local BasePlanes = {}
 local AircraftTypes = { "yak", "mig" }
 local PlanesAttackGroup = { }
 
-local powerproxy = Actor.Create("powerproxy.paratroopers", false, { Owner = USSR })
-
+-- Checking how this works with CVec addition
 ---@type { types: string[], interval: number, path: cpos[], owner?: player }[]
 local SovietAirTeams = {
-	{ types = { "yak" }, interval = DateTime.Seconds(120), path = { SovietAircraftOrigin1.Location }, owner = USSR},
-	{ types = { "yak", "yak" }, interval = DateTime.Seconds(110), path = { SovietAircraftOrigin1.Location }},
+	{ types = { "yak" }, interval = DateTime.Seconds(120), path = { SovietAircraftOrigin1.Location + CVec.New(-1, 0) }, owner = USSR},
+	{ types = { "yak", "yak" }, interval = DateTime.Seconds(110), path = { SovietAircraftOrigin1.Location + CVec.New(-1, 0) }},
 	{ types = { "mig", "mig" }, interval = DateTime.Seconds(110), path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1.Location + CVec.New(-1, 0) }	},
 	{ types = { "mig", "mig", "yak" }, interval = DateTime.Seconds(219),  path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1.Location + CVec.New(-1, 0) } },
 	{ types = { "mig", "mig", "mig", "yak", "yak", "yak", "yak" }, interval = DateTime.Seconds(210), path = { SovietAircraftOrigin1.Location, SovietAircraftOrigin1	.Location + CVec.New(-1, 0) } }
@@ -263,8 +265,28 @@ end
 
 ---@param a actor
 ---@return boolean
+function IsAircraft(a)
+	return Utils.Any({ "yak", "mig", "heli", "mh60", "tran", "hind", "badg" }, function(airType)
+		return a.Type == airType
+	end)
+end
+
+---@param a actor
+---@return boolean
 function IsBuilding(a)
 	return a.HasProperty("StartBuildingRepairs")
+end
+
+---@param a actor
+---@return boolean
+function IsGroundUnit(a)
+	return a.HasProperty("Move") and not IsNaval(a) and not IsAircraft(a)
+end
+
+---@param a actor
+---@return boolean
+function IsGroundActor(a)
+	return IsGroundUnit(a) and IsBuilding(a)
 end
 
 ---@param action fun(actor: actor): boolean
@@ -549,7 +571,7 @@ end
 
 ---@return integer|nil
 function CheckBeachGuardVacancy()
-	local points = BeachGuardPositions
+	local points = BeachGuardRandomPositions
 	for index, guardPoint in ipairs(points) do
 		if #guardPoint.group == 0 then
 			return index
@@ -591,6 +613,13 @@ function ProduceInfantry(producer, owner)
     local toBuild = { Utils.Random(InfantryTypes) }
     local path = Utils.Random(SelectLandAtkPaths(owner))
 
+	if owner == BadGuy and not CheckSecuredArea(IsGroundActor)  then
+		Trigger.AfterDelay(DateTime.Minutes(2), function()
+			ProduceInfantry(producer, owner)
+		end)
+		return
+	end
+
 	owner.Build(toBuild, function(units)
         if owner == USSR then
             table.insert(InfantryUSSRAttackGroup, units[1])
@@ -610,7 +639,7 @@ function ProduceInfantry(producer, owner)
             if #InfantryBadGuyAttackGroup >= InfantryAttackGroupSize then
                 SendUnits(InfantryBadGuyAttackGroup, path)
                 InfantryBadGuyAttackGroup = { }
-                Trigger.AfterDelay(DateTime.Minutes(1.5), function()
+                Trigger.AfterDelay(DateTime.Minutes(2), function()
                     ProduceInfantry(producer, owner)
 			    end)
             else
@@ -641,6 +670,13 @@ function ProduceArmor(producer, owner)
         ProduceHarvester(producer, owner, delay)
         return
     end
+
+	if owner == BadGuy and not CheckSecuredArea(IsGroundActor)  then
+		Trigger.AfterDelay(DateTime.Minutes(2), function()
+			ProduceArmor(producer, owner)
+		end)
+		return
+	end
 
 	local toBuild = { Utils.Random(VehicleTypes) }
     local path = Utils.Random(SelectLandAtkPaths(owner))
@@ -676,7 +712,7 @@ function CreateCombatGroup(producer, owner, unit)
 			SetCombatRole()
 			if CombatRole == "regular" then -- REGULAR
 				SendUnits(VehicleUSSRAttackGroup, path)
-			elseif CombatRole == "guard" and index then -- GUARD
+			elseif CombatRole == "guard" --[[and index]] then -- GUARD
 				SetGuardPoint(index)
 			elseif CombatRole == "marine" then -- MARINE
 				--add these for b scenario
@@ -704,30 +740,35 @@ end
 
 ---@param index integer
 function SetGuardPoint(index)
-	BeachGuardPositions[index].group = VehicleUSSRAttackGroup
-	local units = BeachGuardPositions[index].group
-	local pos = BeachGuardPositions[index].location
+	D(index)
+	BeachGuardRandomPositions[index].group = VehicleUSSRAttackGroup
+	local units = BeachGuardRandomPositions[index].group
+	local pos = BeachGuardRandomPositions[index].location
 
-	Utils.Do(units, function(u)
-		u.Stance = "Defend"
+	Trigger.AfterDelay(DateTime.Seconds(1), function()
+		Utils.Do(units, function(u)
+			
 
-		if not u.IsDead then
-			u.Move(BeachGuardPositions[index].location)
-			u.Move(BeachGuardPositions[index].location + CVec.New(-2, 0))
-			u.Scatter()
-		end
-	end)
+			if not u.IsDead then
+				u.Stance = "Defend"
+				u.Move(pos)
+				u.Move(pos + CVec.New(-2, 0))
+			end
+		end)
 
-	OnAnyDamaged(units, function(u, attacker)
-		if u.Health <= u.MaxHealth * 0.75 then
-			--u.Stance = "Defend"
-			Trigger.Clear(u, "OnDamaged")
-			IdleHunt(u)
-		end
-	end)
+		OnAnyDamaged(units, function(u, attacker)
+			if attacker.Owner == Greece and u.Health <= u.MaxHealth * 0.75 then
+				--u.Stance = "Defend"
+				Trigger.Clear(u, "OnDamaged")
+				Utils.Do(units, function(u)
+					IdleHunt(u)
+				end)
+			end
+		end)
 
-	Trigger.OnAllKilled(units, function()
-		BeachGuardPositions[index].group = { }
+		Trigger.OnAllKilled(units, function()
+			BeachGuardRandomPositions[index].group = { }
+		end)
 	end)
 end
 
@@ -807,8 +848,7 @@ function ProduceAircraft(producer, owner)
     end)
 end
 
----@param delay integer
-function SendParabombs(delay)
+function SendParabombs()
 	if AvailableTypeCheck({USSR, BadGuy}, "afld") then
 		return
 	end
@@ -834,14 +874,16 @@ function SendParadrop(delay)
 	if AvailableTypeCheck({USSR, BadGuy}, "afld") then
 		return
 	end
-	local aircraft = powerproxy.TargetParatroopers(KosyginExtractPoint.CenterPosition)
+
+	local LZ = KosyginExtractPoint
+	local aircraft = powerproxy.TargetParatroopers(LZ.CenterPosition)
 
 	Utils.Do(aircraft, function(a)
 		Trigger.OnPassengerExited(a, function(t, p)
 			IdleHunt(p)
 		end)
 	end)
-	Trigger.AfterDelay(delay, SendParadrop)
+	Trigger.AfterDelay(delay, SendParadrop)--[[]]
 end
 
 function PrepareAircraftReinforcements()
@@ -939,7 +981,7 @@ local function ________________Naval_Attacks________________() end -- Used as ma
 ---@param owner player
 function ProduceSubs(producer, owner)
 	local delay = Utils.RandomInteger(DateTime.Seconds(12), DateTime.Seconds(17))
-	
+
 	if not AvailableProducerTypeCheck(producer, owner) then
         return
 	elseif CheckPlayerMoney(owner) <= 299 and IsHarvesterMissing(owner) then
@@ -1062,11 +1104,10 @@ function EnemySubsReinforcements()
 			local subsLeft = Reinforcements.Reinforce(USSR, {"ss", "ss"}, { leftSpawnPoint, leftSpawnPoint + CVec.New(0, 2) })
 			local subsRight = Reinforcements.Reinforce(USSR, {"ss", "ss"}, { rightSpawnPoint, rightSpawnPoint + CVec.New(0, 2) })
 			--This could be refactored
-			subs = { subsLeft[1], subsLeft[2], subsRight[1] , subsRight[2] }
+			subs = { subsLeft[1], subsRight[1] }
 			Utils.Do(subs, function(u)
 				if not u.IsDead then
 					IdleHunt(u)
-					--D(u)
 				end
 			end)
 		end)
@@ -1101,8 +1142,15 @@ SetupAIActivities = function()
 	USSR.Cash = USSRStartingCash
     BadGuy.Cash = BadGuyStartingCash
 
+	powerproxy = Actor.Create("powerproxy.paratroopers", false, { Owner = USSR })
+
 	-- To randomize location of beach guards
-	Utils.Shuffle(BeachGuardPositions)
+	Trigger.AfterDelay(DateTime.Seconds(1), function()
+		local index = CheckBeachGuardVacancy()
+		if index then
+			-- D(CheckBeachGuardVacancy())
+		end
+	end)
 
 	BeginBaseMaintenance(USSRBaseBlueprints, USSR)
 	BeginBaseMaintenance(BadGuyBaseBlueprints, BadGuy)
@@ -1120,7 +1168,7 @@ end
 
 -- Activated once USSR is alerted
 function RunUSSRActivities()
-	Trigger.AfterDelay(DateTime.Seconds(1), function()
+	Trigger.AfterDelay(DateTime.Minutes(2), function()
 		InsertBlueprints(USSRBaseBlueprints, USSRBaseSamsBlueprints)
 	end)
 

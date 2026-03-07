@@ -43,6 +43,10 @@ FCOM:
 	MustBeDestroyed:
 	ScriptTags:
 
+powerproxy.paratroopers:
+	ParatroopersPower:
+		DropItems: E1,E1,E1,E2,E2
+
 CA:
 	Buildable:
 		Prerequisites: ~disabled

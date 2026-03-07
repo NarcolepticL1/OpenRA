@@ -817,9 +817,6 @@ Actors:
 	Actor251: t08
 		Location: 59,21
 		Owner: Neutral
-	Actor252: tc02
-		Location: 61,19
-		Owner: Neutral
 	Actor253: tc03
 		Location: 56,30
 		Owner: Neutral
@@ -1398,6 +1395,9 @@ Actors:
 	LstDst: waypoint
 		Owner: Neutral
 		Location: 86,66
+	Actor252: tc02
+		Owner: Neutral
+		Location: 61,19
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

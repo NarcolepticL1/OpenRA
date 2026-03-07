@@ -40,11 +40,13 @@ No secondary objective yet
 TL;DR
 - Change dog locations, add a way for AI to rebuild them to defend against spies
 - Change top power plants and island fortifications to new player (not USSR and not BadGuy)
+- Added an extra attack type where USSR sends lst to BadGuy territory if player is there
 ]]
 
 local alert = {}
 
 local IsNaval
+
 local AlertUSSR
 local AlertBadGuy
 local CreateZoneTriggers
@@ -63,8 +65,14 @@ local ForwardComDiscovery
 ---------------------------------------
 
 local StartingCashReserves = { easy = 7000, normal = 6000, hard = 5000, challenge = 5000 }
+local StartingCash
 
-local OnlyOneMCV = { easy = false, normal = false, hard = true, challenge = true }
+local OnlyOneMCVCheck = { easy = false, normal = false, hard = true, challenge = true }
+local OnlyOneMCV
+
+local AlertUSSRDelays = { easy = DateTime.Minutes(4), normal = DateTime.Minutes(3), hard = DateTime.Minutes(2), challenge = DateTime.Minutes(2) }
+local AlertUSSRDelay
+
 
 local McvReinforcements1 = { actors = { "mcv" }, entryPath = { MCVEntry1.Location, MCVDst1.Location } }
 local McvReinforcements2 = { actors = { "mcv" }, entryPath = { MCVEntry2.Location, MCVDst2.Location } }
@@ -88,7 +96,9 @@ EnglandRightEntry.Location, EnglandRightWP1.Location, EnglandRightWP2.Location, 
 local SentNavy = false
 local SentCruisers = false
 
--- Remove
+local TimeHasEnded = false
+
+-- Change this to a more proper method
 local EdgeOfRiverTriggerActivator =
 {
 	CPos.New(66,19), CPos.New(67,19), CPos.New(68,19), CPos.New(69,19), CPos.New(70,19), CPos.New(71,19),
@@ -118,8 +128,8 @@ local FcomDiscovered = false
 ---@param a actor
 ---@return boolean
 function IsNaval(a)
-	return Utils.Any({ "ca", "dd", "lst", "pt", "ss" }, function(shipType)
-		return a.Type == shipType
+	return Utils.Any({ "ca", "dd", "pt", "lst", "ss", "syrd", "spen" }, function(navalType)
+		return a.Type == navalType
 	end)
 end
 
@@ -148,7 +158,6 @@ function alert.AlertBadGuy()
 		return
 	end
 	BadGuyAlerted = true
-
 	RunBadGuyActivities()
 end
 
@@ -181,6 +190,7 @@ function alert.PrepareBadGuyAlerts()
 		if attacker.Owner.Faction == "soviet" then
 			return
 		end
+		--Trigger.Clear(_, "OnDamaged") Could have conflicts with repairBuilding()
 		alert.AlertBadGuy()
 	end)
 
@@ -195,7 +205,7 @@ function InitialSovietPatrols()
 	local path_patrol = {
 	MammothPatrolWP1.Location, MammothPatrolWP2.Location, MammothPatrolWP3.Location,
 	MammothPatrolWP4.Location, MammothPatrolWP5.Location, MammothPatrolWP6.Location,
-	MammothPatrolWP7.Location, MammothPatrolWP8.Location, MammothPatrolWP9.Location, 
+	MammothPatrolWP7.Location, MammothPatrolWP8.Location, MammothPatrolWP9.Location,
 	MammothPatrolWP10.Location
 }
 
@@ -207,7 +217,7 @@ function InitialSovietPatrols()
 	OnAnyDamaged(mmt_patrol, function(victim, attacker)
 		if victim.Health < victim.MaxHealth * 0.75 and attacker.Owner == Greece then
 			victim.Stance = "AttackAnything"
-			--Trigger.ClearAll(victim)
+			Trigger.Clear(victim, "OnDamaged")
 			alert.AlertUSSR()
 		end
 	end)
@@ -216,6 +226,7 @@ end
 function InitialSovietWarning()
 	OnAnyDamaged(USSRBase, function(victim, attacker)
 		if victim.Health < victim.MaxHealth * 0.75 and attacker.Owner == Greece then
+			--Trigger.Clear(victim, "OnDamaged") Could have conflicts with repairBuilding()
 			alert.AlertUSSR()
 		end
 	end)
@@ -233,6 +244,39 @@ function InitialAlliedReinforcements()
 	else
 		Reinforcements.Reinforce(Greece, McvReinforcements3.actors, McvReinforcements3.entryPath)
 	end
+end
+
+function TimerExpiredSendNavy()
+	if SentNavy then
+		return
+	end
+	SentNavy = true
+	Trigger.AfterDelay(DateTime.Seconds(1), function()
+		Media.PlaySpeechNotification(Greece, "AlliedForcesApproaching")
+		local sea1Units = Reinforcements.Reinforce(England, EnglandLeftEarlyNavy.actors, EnglandLeftEarlyNavy.entryPath)
+		Utils.Do(sea1Units, function(a)
+			Trigger.OnAddedToWorld(a, function()
+				a.Patrol(SeaLeftPatrolPath, false, DateTime.Seconds(2))
+			end)
+			Trigger.OnEnteredFootprint(EdgeOfRiverTriggerActivator, function(a)
+				if a.Owner == England and a.Type == "dd" or a.Type == "pt" then
+					a.Destroy()
+				end
+			end)
+		end)
+		local sea2Units = Reinforcements.Reinforce(England, EnglandRightEarlyNavy.actors, EnglandRightEarlyNavy.entryPath)
+		Utils.Do(sea2Units, function(a)
+			Trigger.OnAddedToWorld(a, function()
+				a.Patrol(SeaRightPatrolPath, false, DateTime.Seconds(2))
+			end)
+			Trigger.OnEnteredFootprint(EdgeOfRiverTriggerActivator, function(a)
+				if a.Owner == England and a.Type == "dd" or a.Type == "pt" then
+					a.Destroy()
+				end
+			end)
+		end)
+	end)
+	Trigger.AfterDelay(DateTime.Seconds(10), TimerExpiredSendCruisers)
 end
 
 function TimerExpiredSendCruisers()
@@ -275,39 +319,6 @@ function TimerExpiredSendCruisers()
 	end)
 end
 
-function TimerExpiredSendNavy()
-	if SentNavy then
-		return
-	end
-	SentNavy = true
-	Trigger.AfterDelay(DateTime.Seconds(1), function()
-		Media.PlaySpeechNotification(Greece, "AlliedForcesApproaching")
-		local sea1Units = Reinforcements.Reinforce(England, EnglandLeftEarlyNavy.actors, EnglandLeftEarlyNavy.entryPath)
-		Utils.Do(sea1Units, function(a)
-			Trigger.OnAddedToWorld(a, function()
-				a.Patrol(SeaLeftPatrolPath, false, DateTime.Seconds(2))
-			end)
-			Trigger.OnEnteredFootprint(EdgeOfRiverTriggerActivator, function(a)
-				if a.Owner == England and a.Type == "dd" or a.Type == "pt" then
-					a.Destroy()
-				end
-			end)
-		end)
-		local sea2Units = Reinforcements.Reinforce(England, EnglandRightEarlyNavy.actors, EnglandRightEarlyNavy.entryPath)
-		Utils.Do(sea2Units, function(a)
-			Trigger.OnAddedToWorld(a, function()
-				a.Patrol(SeaRightPatrolPath, false, DateTime.Seconds(2))
-			end)
-			Trigger.OnEnteredFootprint(EdgeOfRiverTriggerActivator, function(a)
-				if a.Owner == England and a.Type == "dd" or a.Type == "pt" then
-					a.Destroy()
-				end
-			end)
-		end)
-	end)
-	Trigger.AfterDelay(DateTime.Seconds(10), TimerExpiredSendCruisers)
-end
-
 function ForwardComDiscovery()
 	Trigger.OnDiscovered(BGFcom, function(_, discoverer)
 		if discoverer ~= Greece then
@@ -322,27 +333,51 @@ function ForwardComDiscovery()
 	end)
 end
 
+FinishTimer = function()
+   	DateTime.TimeLimit = 0
+	for i = 0, 5, 1 do
+		local c = TimerColor
+		if i % 2 == 0 then
+			c = HSLColor.White
+		end
+        Trigger.AfterDelay(DateTime.Seconds(i), function()
+              UserInterface.SetMissionText(UserInterface.GetFluentMessage("the-navy-has-arrived"), c)
+        end)
+    end
+	Trigger.AfterDelay(DateTime.Seconds(6), function() UserInterface.SetMissionText("") end)
+end
+
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 ------------------------------------------------------------------
 local function __MAIN_TRIGGERS__() end -- Used as marker for outliner. Remove when ready
 
+SetDifficulty = function()
+	OnlyOneMCV = OnlyOneMCVCheck[Difficulty]
+	StartingCash = StartingCashReserves[Difficulty]
+
+	AlertUSSRDelay = AlertUSSRDelays[Difficulty]
+end
+
 InitTriggers = function()
-	Greece.Cash = StartingCashReserves[Difficulty]
+	Greece.Cash = StartingCash
 
 	InitialAlliedReinforcements()
 
 	InitialSovietPatrols()
 	InitialSovietWarning()
 
-	--alert.PrepareBadGuyAlerts()
-	--Trigger.AfterDelay(AlertUSSRDelay, function()
-		--alert.AlertUSSR()
-	--end)
+	alert.PrepareBadGuyAlerts()
+	Trigger.AfterDelay(AlertUSSRDelay, function()
+		alert.AlertUSSR()
+	end)
 
 	ForwardComDiscovery()
 
-	Trigger.OnTimerExpired(TimerExpiredSendNavy)
+	Trigger.OnTimerExpired( function()
+		TimerExpiredSendNavy()
+		FinishTimer()
+	end)
 end
 
 PrepareObjectives = function()
@@ -379,6 +414,16 @@ Tick = function()
 	if Greece.HasNoRequiredUnits() then
 		USSR.MarkCompletedObjective(USSRObj)
 	end
+
+	if USSR.HasNoRequiredUnits() and BadGuy.HasNoRequiredUnits and Turkey.HasNoRequiredUnits() then
+		if not TimeHasEnded then
+			TimeHasEnded = true
+			FinishTimer()
+			TimerExpiredSendNavy()
+		end
+	end
+
+	UserInterface.SetMissionText("USSR: " .. tostring(USSR.Cash) .. " | " .. "BadGuy: " .. tostring(BadGuy.Cash)  )
 end
 
 WorldLoaded = function()
@@ -391,17 +436,12 @@ WorldLoaded = function()
 	England = Player.GetPlayer("England")
 	Neutral = Player.GetPlayer("Neutral")
 
+	SetDifficulty()
 	InitTriggers()
-	--PrepareObjectives()
+	PrepareObjectives()
 
 	SetupAIActivities()
-	--CheckBeachGuardVacancy()
-	--D(BeachGuardPositions[1].location)
-	--D(BeachGuardPositions[2].location)
-	--D(BeachGuardPositions[3].location)
-	--D(BeachGuardPositions[4].location)
-	--D(Actor328.Location)
 
-
+	TimerColor = Player.GetPlayer("Greece").Color
 	DateTime.TimeLimit = DateTime.Minutes(60)
 end

@@ -46,6 +46,7 @@ TL;DR
 local alert = {}
 
 local IsNaval
+local CheckSecuredArea
 
 local AlertUSSR
 local AlertBadGuy
@@ -55,12 +56,17 @@ local PrepareBadGuyAlerts
 local InitialSovietPatrols
 local InitialSovietWarning
 
+local TurkeyDefensiveCall
+
 local InitialAlliedReinforcements
 
 local TimerExpiredSendCruisers
 local TimerExpiredSendNavy
 
 local ForwardComDiscovery
+local EnemySubsReinforcements
+
+local FinishTimer
 
 ---------------------------------------
 
@@ -120,10 +126,21 @@ local USSRBase = {
 	USSRSpen, USSRKenn, USSRAfld1, USSRAfld2, USSRAfld3, USSRAfld4, USSRDome, USSRStek, USSRFtur1, USSRFtur2, USSRTsla1, USSRTsla2
 }
 
+local IslandDefenses = 
+	{ IslandTsla1, IslandTsla2, IslandTsla3, IslandTsla4, IslandTsla5, IslandTsla6,
+	IslandSam1, IslandSam2, IslandSam3, IslandSub1, IslandSub2, IslandSub3, IslandSub4
+}
+
 local BadGuyAlerted = false
 local USSRAlerted = false
+local USSRTurkey = false
 
 local FcomDiscovered = false
+
+------------------------------------
+------ 	UTILS START	 ---------------
+------------------------------------
+local function __UTILS__() end -- Used as marker for outliner. Remove when ready
 
 ---@param a actor
 ---@return boolean
@@ -132,6 +149,23 @@ function IsNaval(a)
 		return a.Type == navalType
 	end)
 end
+
+---@param action fun(actor: actor): boolean
+---@return boolean
+function CheckSecuredArea(action)
+	local nw = WPos.New( (CPos.New(61, 19)).X * 1024,  (CPos.New(61, 19)).Y * 1024, 0)
+    local se = WPos.New( (CPos.New(105, 103)).X * 1024, (CPos.New(105, 103)).Y * 1024, 0)
+	
+	local actors = Map.ActorsInBox( nw, se, function(a)
+		return (a.Owner == Greece or a.Owner == England) and action(a)
+    end)
+
+	return #actors > 0
+end
+
+------------------------------------
+------ 	UTILS END	 ---------------
+------------------------------------
 
 ------------------------------------
 ------ 	ALERT START	 ---------------
@@ -143,6 +177,15 @@ local function __ALERTS__() end -- Used as marker for outliner. Remove when read
 -- - Player has land units or structures on the east side of the map
 -- - X time has passed
 -- - USSR player is defeated
+
+function alert.AlertTurkey()
+	if USSRTurkey then
+		return
+	end
+	USSRTurkey = true
+
+	EnemySubsReinforcements()
+end
 
 function alert.AlertUSSR()
 	if USSRAlerted then
@@ -200,14 +243,20 @@ function alert.PrepareBadGuyAlerts()
 	end)
 end
 
+function alert.TurkeyDefensiveCall()
+	OnAnyDamaged(IslandDefenses, function(victim, attacker)
+		alert.AlertTurkey()
+		Trigger.Clear(victim, "OnDamaged")
+	end)
+end
+
 function InitialSovietPatrols()
 	local mmt_patrol = { mmth1, mmth2 }
 	local path_patrol = {
 	MammothPatrolWP1.Location, MammothPatrolWP2.Location, MammothPatrolWP3.Location,
 	MammothPatrolWP4.Location, MammothPatrolWP5.Location, MammothPatrolWP6.Location,
 	MammothPatrolWP7.Location, MammothPatrolWP8.Location, MammothPatrolWP9.Location,
-	MammothPatrolWP10.Location
-}
+	MammothPatrolWP10.Location }
 
 	Utils.Do(mmt_patrol, function(t)
 		mmth1.Patrol(path_patrol, true, DateTime.Seconds(12))
@@ -216,9 +265,15 @@ function InitialSovietPatrols()
 
 	OnAnyDamaged(mmt_patrol, function(victim, attacker)
 		if victim.Health < victim.MaxHealth * 0.75 and attacker.Owner == Greece then
-			victim.Stance = "AttackAnything"
-			Trigger.Clear(victim, "OnDamaged")
-			alert.AlertUSSR()
+			Utils.Do(mmt_patrol, function(u)
+				if not u.IsDead then
+					u.Stance = "AttackAnything"
+					u.Stop()
+					Trigger.Clear(u, "OnDamaged")
+					IdleHunt(u)
+					alert.AlertUSSR()
+				end
+			end)
 		end
 	end)
 end
@@ -253,8 +308,9 @@ function TimerExpiredSendNavy()
 	SentNavy = true
 	Trigger.AfterDelay(DateTime.Seconds(1), function()
 		Media.PlaySpeechNotification(Greece, "AlliedForcesApproaching")
-		local sea1Units = Reinforcements.Reinforce(England, EnglandLeftEarlyNavy.actors, EnglandLeftEarlyNavy.entryPath)
-		Utils.Do(sea1Units, function(a)
+
+		local seaLeftUnits = Reinforcements.Reinforce(England, EnglandLeftEarlyNavy.actors, EnglandLeftEarlyNavy.entryPath)
+		Utils.Do(seaLeftUnits, function(a)
 			Trigger.OnAddedToWorld(a, function()
 				a.Patrol(SeaLeftPatrolPath, false, DateTime.Seconds(2))
 			end)
@@ -264,8 +320,9 @@ function TimerExpiredSendNavy()
 				end
 			end)
 		end)
-		local sea2Units = Reinforcements.Reinforce(England, EnglandRightEarlyNavy.actors, EnglandRightEarlyNavy.entryPath)
-		Utils.Do(sea2Units, function(a)
+
+		local seaRightUnits = Reinforcements.Reinforce(England, EnglandRightEarlyNavy.actors, EnglandRightEarlyNavy.entryPath)
+		Utils.Do(seaRightUnits, function(a)
 			Trigger.OnAddedToWorld(a, function()
 				a.Patrol(SeaRightPatrolPath, false, DateTime.Seconds(2))
 			end)
@@ -275,6 +332,7 @@ function TimerExpiredSendNavy()
 				end
 			end)
 		end)
+
 	end)
 	Trigger.AfterDelay(DateTime.Seconds(10), TimerExpiredSendCruisers)
 end
@@ -284,21 +342,23 @@ function TimerExpiredSendCruisers()
 		return
 	end
 	SentCruisers = true
-	Trigger.AfterDelay(DateTime.Seconds(10), function()
+	Trigger.AfterDelay(DateTime.Seconds(8), function()
 		local cruisers = {}
-		
-		local left_ca = Reinforcements.Reinforce(England, EnglandLeftLateNavy.actors, EnglandLeftLateNavy.entryPath)[1]
-		table.insert(cruisers, left_ca)
+
+		Cruiser1.Owner = England
+		table.insert(cruisers, Cruiser1)
+		Cruiser1.MoveIntoWorld(EnglandLeftEntry.Location)
 		Utils.Do(SeaLeftPatrolPath, function(wp)
-			Trigger.OnAddedToWorld(left_ca, function()
-				left_ca.Move(wp)
+			Trigger.OnAddedToWorld(Cruiser1, function()
+				Cruiser1.Move(wp)
 			end)
 		end)
-		local right_ca = Reinforcements.Reinforce(England, EnglandRightLateNavy.actors, EnglandRightLateNavy.entryPath)[1]
-		table.insert(cruisers, right_ca)
+		Cruiser2.Owner = England
+		table.insert(cruisers, Cruiser2)
+		Cruiser2.MoveIntoWorld(EnglandRightEntry.Location)
 		Utils.Do(SeaRightPatrolPath, function(wp)
-			Trigger.OnAddedToWorld(right_ca, function()
-				right_ca.Move(wp)
+			Trigger.OnAddedToWorld(Cruiser2, function()
+				Cruiser2.Move(wp)
 			end)
 		end)
 
@@ -337,7 +397,41 @@ function ForwardComDiscovery()
 	end)
 end
 
-FinishTimer = function()
+-- Constant out of map attack if eastern Forward Command is not dead
+function EnemySubsReinforcements()
+    if BGFcom.IsDead then
+		return
+	end
+
+	Media.DisplayMessage(UserInterface.GetFluentMessage("enemy-subs-alerted"), "Command")
+
+	if CheckSecuredArea(IsNaval) then
+		local leftSpawnPoint = EnglandLeftExit.Location
+		local rightSpawnPoint = EnglandRightExit.Location
+
+		Trigger.AfterDelay(DateTime.Seconds(1), function()
+			local subsLeft = Reinforcements.Reinforce(USSR, {"ss", "ss"}, { leftSpawnPoint, leftSpawnPoint + CVec.New(0, 2) })
+			local subsRight = Reinforcements.Reinforce(USSR, {"ss", "ss"}, { rightSpawnPoint, rightSpawnPoint + CVec.New(0, 2) })
+			--This could be refactored
+			Utils.Do(subsLeft, function(u)
+				if not u.IsDead then
+					IdleHunt(u)
+				end
+			end)
+			Utils.Do(subsRight, function(u)
+				if not u.IsDead then
+					IdleHunt(u)
+				end
+			end)
+		end)
+	end
+
+    Trigger.AfterDelay(DateTime.Minutes(3), function()
+        EnemySubsReinforcements()
+    end)
+end
+
+function FinishTimer()
    	DateTime.TimeLimit = 0
 	for i = 0, 5, 1 do
 		local c = TimerColor
@@ -375,6 +469,8 @@ InitTriggers = function()
 	Trigger.AfterDelay(AlertUSSRDelay, function()
 		alert.AlertUSSR()
 	end)
+
+	alert.TurkeyDefensiveCall()
 
 	ForwardComDiscovery()
 
@@ -446,5 +542,5 @@ WorldLoaded = function()
 	SetupAIActivities()
 
 	TimerColor = Player.GetPlayer("Greece").Color
-	DateTime.TimeLimit = DateTime.Minutes(1) --60
+	DateTime.TimeLimit = DateTime.Minutes(60) --60
 end

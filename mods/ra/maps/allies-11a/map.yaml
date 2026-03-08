@@ -43,7 +43,7 @@ Players:
 		Bot: campaign
 		Faction: soviet
 		Color: D2997D
-		Allies: USSR
+		Allies: USSR, BadGuy
 		Enemies: England, Greece
 	PlayerReference@England:
 		Name: England
@@ -997,18 +997,6 @@ Actors:
 		Location: 68,99
 		Owner: USSR
 		Facing: 256
-	Actor362: ss
-		Location: 69,50
-		Owner: USSR
-		Facing: 512
-	Actor363: ss
-		Location: 75,52
-		Owner: USSR
-		Facing: 512
-	Actor364: ss
-		Location: 78,50
-		Owner: USSR
-		Facing: 512
 	Actor365: ss
 		Location: 76,99
 		Owner: USSR
@@ -1033,10 +1021,6 @@ Actors:
 		Location: 75,69
 		Owner: USSR
 		Facing: 640
-	Actor371: ss
-		Location: 72,52
-		Owner: USSR
-		Facing: 512
 	DefaultCameraPosition: waypoint
 		Location: 25,96
 		Owner: Neutral
@@ -1096,9 +1080,6 @@ Actors:
 		Owner: Neutral
 	WP96: waypoint
 		Location: 82,19
-		Owner: Neutral
-	WP65: waypoint
-		Location: 92,13
 		Owner: Neutral
 	IslandTsla1: tsla
 		Location: 68,47
@@ -1179,18 +1160,9 @@ Actors:
 		Owner: USSR
 		Facing: 512
 		Stance: Defend
-	MCVDst3: waypoint
-		Owner: Neutral
-		Location: 25,100
 	MCVEntry3: waypoint
 		Owner: Neutral
 		Location: 25,103
-	SovietAircraftOrigin2: waypoint
-		Location: 106,101
-		Owner: Neutral
-	SovietAircraftOrigin1: waypoint
-		Location: 106,69
-		Owner: Neutral
 	BGPower1: powr
 		Location: 98,47
 		Owner: BadGuy
@@ -1249,35 +1221,12 @@ Actors:
 	Actor231: t08
 		Owner: Neutral
 		Location: 60,32
-	WP57: waypoint
-		Owner: Neutral
-		Location: 71,13
 	EnglandLeftExit: waypoint
 		Owner: Neutral
 		Location: 70,19
 	EnglandRightExit: waypoint
 		Owner: Neutral
 		Location: 92,19
-	Actor280: dog
-		Owner: USSR
-		Location: 50,50
-		SubCell: 3
-		Facing: 306
-	Actor281: dog
-		Owner: USSR
-		Location: 44,50
-		SubCell: 3
-		Facing: 722
-	Actor284: dog
-		Owner: USSR
-		SubCell: 1
-		Facing: 512
-		Location: 44,45
-	Actor283: dog
-		Owner: USSR
-		SubCell: 2
-		Facing: 512
-		Location: 40,45
 	USSRProc: proc
 		Location: 41,42
 		Owner: USSR
@@ -1398,6 +1347,67 @@ Actors:
 	Actor252: tc02
 		Owner: Neutral
 		Location: 61,19
+	SovietAircraftEastOrigin1: waypoint
+		Location: 106,69
+		Owner: Neutral
+	SovietAircraftEastOrigin2: waypoint
+		Location: 106,101
+		Owner: Neutral
+	SovietAircraftTopOrigin1: waypoint
+		Owner: Neutral
+		Location: 71,13
+	SovietAircraftTopOrigin2: waypoint
+		Location: 92,13
+		Owner: Neutral
+	MCVDst3: waypoint
+		Owner: Neutral
+		Location: 25,100
+	Actor287: mine
+		Owner: Neutral
+		Location: 24,25
+	USSRGuardDog1: dog
+		Owner: USSR
+		Location: 44,50
+		SubCell: 3
+		Facing: 722
+	USSRGuardDog2: dog
+		Owner: USSR
+		Location: 50,50
+		SubCell: 3
+		Facing: 306
+	USSRGuardDog3: dog
+		Owner: USSR
+		SubCell: 2
+		Location: 40,45
+		Facing: 512
+	USSRGuardDog4: dog
+		Owner: USSR
+		SubCell: 1
+		Location: 44,45
+		Facing: 512
+	IslandSub1: ss
+		Location: 69,50
+		Owner: Turkey
+		Stance: Defend
+		Facing: 512
+	IslandSub2: ss
+		Location: 72,52
+		Stance: Defend
+		Owner: Turkey
+		Facing: 512
+	IslandSub3: ss
+		Location: 75,52
+		Facing: 512
+		Owner: Turkey
+		Stance: Defend
+	IslandSub4: ss
+		Location: 78,50
+		Owner: Turkey
+		Facing: 512
+		Stance: Defend
+	Actor280: waypoint
+		Owner: Neutral
+		Location: 65,50
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

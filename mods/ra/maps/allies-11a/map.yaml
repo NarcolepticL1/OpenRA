@@ -1258,9 +1258,6 @@ Actors:
 	EnglandRightWP5: waypoint
 		Location: 94,41
 		Owner: Neutral
-	USSRAtkWP1: waypoint
-		Owner: Neutral
-		Location: 47,75
 	USSRAtkWP2: waypoint
 		Owner: Neutral
 		Location: 40,101
@@ -1408,6 +1405,9 @@ Actors:
 	Actor280: waypoint
 		Owner: Neutral
 		Location: 65,50
+	USSRAtkWP1: waypoint
+		Owner: Neutral
+		Location: 50,72
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

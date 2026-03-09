@@ -11,36 +11,36 @@
 ----------------    SUMMARY OF LEVEL IMPLEMENTATION	----------------
 --------------------------------------------------------------------
 --[[
-APPROACH
-First of all I tried to stick to the original level spirit more than copying verbatim triggers/events. Working on top of @yuantse and @JovialFeline code
 
-ORIGINAL VS ORA VERSION
-Again the redeployable MCV changes a few things. At the start of the level the player starts with 2 mcvs. I want to change this a bit (See BALANCE).
+## Disclaimer
+I tried to stick to the original level spirit more than copying verbatim triggers/events (which I don't have access to). I used @yuantse code and @JovialFeline code and notes.
 
-BALANCE
-First of all the second MCV the player has would only be available on EASY. In Normal the MCV will arrive after X time. In HARD there will be no extra
-MCV. If the player wants to secure the right side, he/she must migrate there with the only MCV. 
-The closest soviet base doesn't have sams so aircrafts can do quick work of it. I think is better to give the AI (USSR) sams but these will be built after
-X time. The X amount will depend on difficulty, so, if the player is quick enough, he/she can weaken the soviet enough so they become less of a threat.
+## Design
+To my understanding of the original level, western AI attack the player as is usual but also creates combat groups to defend the beach side to prevent the player from moving his MCV to the east side of the map. Original AI also created submarine reinforcements that usually failed to enter the world (they got stuck out of map bounds).
 
+## Deviantions, balance and creative liberties
+- Removed hinds/soviet hpads to keep coherency with other ORA campaign levels.
+- Heli are too strong on this mission so I added the option for AI to re/build sams (after X time) on west soviet base in "normal" and "hard" (otherwise it wouldn't have any reliable AA option).
+- Added extra power plants to USSR to be able to support sams and don't get outage regularly (those replace the hpads).
+- Because of redeployable MCVs, player will only get one on hard difficulty. Just to spice things up.
+- Air attack waves are infinite because AA options are quite good against them.
+- The mission gets a bit ore starved at some point (for both the player and west soviet base) so I added a mine to help this issue. The player will still need to fight to get it
+- Increased crystal amount on channel island to make it more enticing when ore runs out (from ~350 to 1500). Original levels has same crystal tile amount but of higher yield.
+- Moved some dogs around, added a few more, and gave the AI the option to train and replace them. 
+- Spy can steal up to 3000 cash.
+- Added a third player (Turkey) to better convey player energy relation.
+- Removed passage from USSR base to Turkey power plants. Since allies now have TRAN and longer range mobile artillery on top of lsts, I thought this change made sense (allies-11b doesn't have a land path towards power plants).
+- Added LST and marine attack logic to USSR if player moves quickly to east side (mostly to have it for allies-11b).
+- Set some actors to defend stance (USSR v2rl and island submarines)
+- Original level had 2 hours before England navy arrived. Reduced it to one (normal speed) to fit briefing. Also level doesn't justify more time than that.
 
-MCV-Deploy
-Aircrafts
-Spy
-PowerPlants and island fortification 
+## Things missing and possible improvements
+Aside from any original triggers; some things that would be nice to have/fix:
+- AI selling non-essential buildings if HP of it is too low and resources are scarce.
+- USSR Spen submarine attacks behave unreliably. Sometimes subs attack (IdleHunt) sometimes they don't.
+- Wasn't able to fully check if plane air waves used BadGuy airfields if not destroyed and if USSR airfields aren't availabla (or the other way around).
+- Beach blocker units are set to "defend" stance to make it harder for the player to move towards the east side. "Defend" stance ignores player buildings.
 
-
-As mentioned before, AI will send attacks occasionally but the bulk of the AI efforts will be in protecting the base and other behaviors that make it hard
-for the VIP unit to leave the base. Among these changes
-
-OTHER
-No secondary objective yet
-
-
-TL;DR
-- Change dog locations, add a way for AI to rebuild them to defend against spies
-- Change top power plants and island fortifications to new player (not USSR and not BadGuy)
-- Added an extra attack type where USSR sends lst to BadGuy territory if player is there
 ]]
 
 local alert = {}

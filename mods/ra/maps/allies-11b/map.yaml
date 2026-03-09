@@ -527,9 +527,6 @@ Actors:
 	Actor157: ice03
 		Location: 87,47
 		Owner: Neutral
-	Actor158: tc01
-		Location: 77,48
-		Owner: Neutral
 	Actor159: ice05
 		Location: 88,48
 		Owner: Neutral
@@ -683,10 +680,6 @@ Actors:
 		Location: 70,47
 		Owner: Turkey
 		Facing: 512
-	Actor242: sam
-		Location: 77,48
-		Owner: Turkey
-		Facing: 768
 	IslandSam3: sam
 		Location: 75,49
 		Owner: Turkey
@@ -720,8 +713,8 @@ Actors:
 	Actor254: v2rl
 		Location: 48,49
 		Owner: USSR
-		Facing: 512
 		Stance: Defend
+		Facing: 512
 	StartMammoth1: 4tnk
 		Location: 56,59
 		Owner: USSR
@@ -838,23 +831,28 @@ Actors:
 		Facing: 640
 	IslandSub1: ss
 		Location: 77,42
-		Owner: USSR
+		Owner: Turkey
+		Stance: Defend
 		Facing: 640
 	IslandSub2: ss
 		Location: 86,48
-		Owner: USSR
+		Owner: Turkey
+		Stance: Defend
 		Facing: 512
 	IslandSub5: ss
 		Location: 83,55
-		Owner: USSR
+		Owner: Turkey
+		Stance: Defend
 		Facing: 512
 	IslandSub6: ss
 		Location: 85,55
-		Owner: USSR
+		Owner: Turkey
+		Stance: Defend
 		Facing: 512
 	IslandSub7: ss
 		Location: 84,56
-		Owner: USSR
+		Stance: Defend
+		Owner: Turkey
 		Facing: 512
 	SouthSub1: ss
 		Location: 84,66
@@ -1036,8 +1034,7 @@ Actors:
 		Location: 122,1
 	USSRLoadUnits: waypoint
 		Location: 55,29
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	USSRUnloadUnits: waypoint
 		Location: 57,97
 		Faction: england
@@ -1079,12 +1076,6 @@ Actors:
 	MCVEntry3: waypoint
 		Owner: Neutral
 		Location: 31,102
-	SovietAircraftOrigin1: waypoint
-		Location: 104,45
-		Owner: Neutral
-	SovietAircraftOrigin2: waypoint
-		Location: 104,87
-		Owner: Neutral
 	EnglandLeftEntry: waypoint
 		Location: 64,102
 		Owner: Neutral
@@ -1121,17 +1112,8 @@ Actors:
 	EnglandRightWP4: waypoint
 		Location: 76,42
 		Owner: Neutral
-	EnglandRightWP5: waypoint
-		Location: 73,37
-		Owner: Neutral
 	EnglandRightWP6: waypoint
 		Location: 74,24
-		Owner: Neutral
-	EnglandLeftExit: waypoint
-		Location: 67,14
-		Owner: Neutral
-	EnglandRightExit: waypoint
-		Location: 74,14
 		Owner: Neutral
 	EnglandLeftDst: waypoint
 		Location: 67,17
@@ -1173,22 +1155,6 @@ Actors:
 	BadGuyFact: fact
 		Location: 96,29
 		Owner: BadGuy
-	Actor199: truk
-		Owner: Greece
-		Facing: 384
-		Location: 95,85
-	Actor200: dome
-		Owner: BadGuy
-		Location: 119,46
-	Actor201: stek
-		Owner: BadGuy
-		Location: 119,49
-	Actor202: apwr
-		Owner: BadGuy
-		Location: 119,42
-	Actor203: apwr
-		Owner: BadGuy
-		Location: 119,36
 	Actor273: e4
 		Owner: USSR
 		ScriptTags: Area Guard
@@ -1202,12 +1168,14 @@ Actors:
 		Owner: USSR
 		Location: 40,50
 	IslandSub3: ss
-		Owner: USSR
 		Location: 70,54
+		Owner: Turkey
+		Stance: Defend
 		Facing: 768
 	IslandSub4: ss
-		Owner: USSR
 		Location: 65,52
+		Owner: Turkey
+		Stance: Defend
 		Facing: 640
 	USSRPower3: apwr
 		Owner: USSR
@@ -1218,6 +1186,63 @@ Actors:
 	EnglandLeftWP4: waypoint
 		Owner: Neutral
 		Location: 72,54
+	Actor204: dog
+		Owner: USSR
+		Location: 45,49
+		SubCell: 3
+		Facing: 259
+	Actor205: dog
+		Owner: USSR
+		Location: 40,49
+		SubCell: 3
+		Facing: 757
+	Actor207: dog
+		Owner: USSR
+		Location: 42,36
+		SubCell: 3
+		Facing: 811
+	Actor206: dog
+		Owner: USSR
+		Location: 42,44
+		SubCell: 3
+		Facing: 654
+	Actor199: waypoint
+		Owner: Neutral
+		Location: 53,27
+	EnglandRightWP5: waypoint
+		Owner: Neutral
+		Location: 73,37
+	IslandSam4: sam
+		Location: 77,48
+		Owner: Turkey
+		Facing: 768
+	Actor208: e6
+		Owner: Greece
+		Facing: 384
+		Location: 66,58
+		SubCell: 3
+	Actor158: tc01
+		Owner: Neutral
+		Location: 77,48
+	SovietAircraftEastOrigin1: waypoint
+		Location: 104,45
+		Owner: Neutral
+	SovietAircraftEastOrigin2: waypoint
+		Location: 104,87
+		Owner: Neutral
+	SovietAircraftTopOrigin1: waypoint
+		Location: 67,14
+		Owner: Neutral
+	SovietAircraftTopOrigin2: waypoint
+		Location: 74,14
+		Owner: Neutral
+	Actor200: lst
+		Owner: USSR
+		Location: 56,31
+		Facing: 384
+	LstDetectionZone: waypoint
+		Owner: Neutral
+		Location: 53,31
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

@@ -85,9 +85,6 @@ local USSRStartingCash
 local BadGuyCashReserves = { easy = 100000, normal = 100000, hard = 100000, challenge = 100000 }
 local BadGuyStartingCash
 
-local AlertUSSRDelays = { easy = DateTime.Minutes(8), normal = DateTime.Minutes(6), hard = DateTime.Minutes(5), challenge = DateTime.Minutes(5) }
-local AlertUSSRDelay
-
 local AtkProductionIntervals = { easy = DateTime.Seconds(60), normal = DateTime.Seconds(40), hard = DateTime.Seconds(20), challenge = DateTime.Seconds(20) }
 local AtkProductionInterval
 
@@ -147,9 +144,9 @@ local BadGuyBaseExtraBlueprints =
 
     { type = "proc", actor = BGProc, cost = 1400, shape = { 3, 4 }, location = CPos.New(100, 36) },
 
-    { type = "barr", actor = BGBarr, cost = 500, shape = { 2, 3 }, location = CPos.New(97, 36) },
-    { type = "weap", actor = BGWeap, cost = 2000, shape = { 3, 3 }, location = CPos.New(91, 37) },
-    { type = "spen", actor = BGSpen, cost = 800, shape = { 3, 3 }, location = CPos.New(80, 32) },
+    { type = "barr", actor = BGBarr, cost = 500, shape = { 2, 3 }, location = CPos.New(97, 36), owner = BadGuy, producer = true },
+    { type = "weap", actor = BGWeap, cost = 2000, shape = { 3, 3 }, location = CPos.New(91, 37),owner = BadGuy, producer = true },
+    { type = "spen", actor = BGSpen, cost = 800, shape = { 3, 3 }, location = CPos.New(80, 32),owner = BadGuy, producer = true },
 
 	{ type = "afld", actor = BGAfld1, cost = 500, shape = { 3, 2 }, location = CPos.New(87, 30) },
 	{ type = "afld", actor = BGAfld2, cost = 500, shape = { 3, 2 }, location = CPos.New(87, 32) },
@@ -201,18 +198,22 @@ local BadGuyAttackPaths = { {BGAttackRallyWP.Location}}
 
 local InfantryTypes = { "e1", "e2", "e4"}
 local InfantryAttackGroup = { }
+
 local InfantryAttackGroupSizes = { easy = 6, normal = 9, hard = 12, challenge = 12 }
+local InfantryAttackGroupSize
 
 ---@type string[]
 local VehicleTypes = { "3tnk", "3tnk", "3tnk", "v2rl", "v2rl", "4tnk" }
 local VehicleAttackGroup = {}
+
 local VehicleAttackGroupSizes = { easy = 2, normal = 3, hard = 4, challenge = 4 }
+local VehicleAttackGroupSize
 
 local VehicleUSSRAttackGroup = { }
 local VehicleBadGuyAttackGroup = { }
 
-InfantryUSSRAttackGroup = { }
-InfantryBadGuyAttackGroup = { }
+local InfantryUSSRAttackGroup = { }
+local InfantryBadGuyAttackGroup = { }
 
 local CombatRole = "regular" -- Roles: "regular", "guard", "marine"
 
@@ -674,8 +675,8 @@ function ProduceInfantry(producer, owner)
 	owner.Build(toBuild, function(units)
         if owner == USSR then
             table.insert(InfantryUSSRAttackGroup, units[1])
-            if #InfantryUSSRAttackGroup >= InfantryAttackGroupSize then
-                SendUnits(InfantryUSSRAttackGroup, path)
+			if #InfantryUSSRAttackGroup >= InfantryAttackGroupSize then
+               SendUnits(InfantryUSSRAttackGroup, path)
                 InfantryUSSRAttackGroup = { }
                 Trigger.AfterDelay(DateTime.Minutes(2), function()
                     ProduceInfantry(producer, owner)
@@ -768,7 +769,7 @@ function CreateCombatGroup(producer, owner, unit)
 				SetGuardPoint(index)
 			elseif CombatRole == "marine" then -- MARINE
 				--add these for b scenario
-				FetchUnitsToTransport(VehicleUSSRAttackGroup, LstLoad.Location)
+				FetchUnitsToTransport(VehicleUSSRAttackGroup, USSRLoadUnits.Location)
 			end
 			VehicleUSSRAttackGroup = { }
 			Trigger.AfterDelay(DateTime.Minutes(2), function()
@@ -1158,7 +1159,6 @@ function SetAIDifficulty()
 
 	SubAttackGroupSize = SubAttackGroupSizes[Difficulty]
 
-	AlertUSSRDelay = AlertUSSRDelays[Difficulty]
 end
 
 function SetupAIActivities()
@@ -1166,10 +1166,7 @@ function SetupAIActivities()
 
     USSR.Cash = USSRStartingCash
     BadGuy.Cash = BadGuyStartingCash
-
-    --Maybe this one is not necessary
     
-
     BeginBaseMaintenance(USSRBaseBlueprints, USSR)
     BeginBaseMaintenance(BadGuyBaseBlueprints, BadGuy)
 
@@ -1185,7 +1182,7 @@ function RunUSSRActivities()
     ProduceInfantry(USSRBarr, USSR)
 	ProduceArmor(USSRWeap, USSR)
 
-    ProduceSubs(USSRSpen, USSR)
+    --ProduceSubs(USSRSpen, USSR)
 end
 
 -- Activated once BadGuy is alerted

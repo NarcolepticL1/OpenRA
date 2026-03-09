@@ -193,8 +193,7 @@ function alert.AlertBadGuy()
 		return
 	end
 	BadGuyAlerted = true
-	Media.Debug("BadGuy alerted")
-	-- CHANGE: Move this to .lua AI file
+	Media.Debug("Alert BadGuy")
 	--RunBadGuyActivities()
 end
 
@@ -203,7 +202,7 @@ function alert.AlertTurkey()
 		return
 	end
 	USSRTurkey = true
-	Media.Debug("BadGuy alerted")
+	Media.Debug("Alert Turkey")
 	--RunUSSRActivities()
 end
 
@@ -623,7 +622,7 @@ InitTriggers = function()
 	alert.PrepareBadGuyAlerts()
 
 	Trigger.AfterDelay(AlertUSSRDelay, function()
-		AlertUSSR()
+		alert.AlertUSSR()
 	end)
 
 	Trigger.OnTimerExpired(TimerExpiredSendNavy)
@@ -691,7 +690,7 @@ WorldLoaded = function()
 	InitTriggers()
 	PrepareObjectives()
 
-	--SetupAIActivities()
+	SetupAIActivities()
 
 	TimerColor = Player.GetPlayer("Greece").Color
 	DateTime.TimeLimit = DateTime.Minutes(60) --Change regarding dificulty

@@ -651,9 +651,6 @@ Actors:
 		Location: 40,36
 		Owner: USSR
 		Facing: 384
-	USSRPower1: apwr
-		Location: 38,38
-		Owner: USSR
 	USSRSam2: sam
 		Location: 48,38
 		Owner: USSR
@@ -881,20 +878,16 @@ Actors:
 		Facing: 512
 	Waypoint32: waypoint
 		Location: 64,77
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	Waypoint33: waypoint
 		Location: 57,84
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	Waypoint34: waypoint
 		Location: 46,73
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	Waypoint37: waypoint
 		Location: 43,100
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	DefaultCameraPosition: waypoint
 		Location: 35,98
 		Owner: Neutral
@@ -1142,16 +1135,6 @@ Actors:
 	USSRFtur1: ftur
 		Owner: USSR
 		Location: 40,50
-	IslandSub3: ss
-		Location: 70,54
-		Owner: Turkey
-		Stance: Defend
-		Facing: 768
-	IslandSub4: ss
-		Location: 65,52
-		Owner: Turkey
-		Stance: Defend
-		Facing: 640
 	USSRPower3: apwr
 		Owner: USSR
 		Location: 34,43
@@ -1223,6 +1206,25 @@ Actors:
 		Owner: USSR
 		Facing: 512
 		Location: 69,87
+	IslandSub4: ss
+		Owner: Turkey
+		Stance: Defend
+		Facing: 640
+		Location: 65,40
+	IslandSub3: ss
+		Owner: Turkey
+		Stance: Defend
+		Facing: 768
+		Location: 71,54
+	USSRPower6: apwr
+		Location: 38,38
+		Owner: USSR
+	USSRPower1: powr
+		Owner: USSR
+		Location: 37,41
+	USSRPower5: powr
+		Owner: USSR
+		Location: 49,42
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

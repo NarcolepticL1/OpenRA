@@ -1238,6 +1238,14 @@ Actors:
 	TransportPoint: waypoint
 		Owner: Neutral
 		Location: 53,27
+	Actor201: powr
+		Owner: Greece
+		Location: 95,86
+	Actor202: e1
+		Owner: Greece
+		Facing: 384
+		Location: 92,88
+		SubCell: 3
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

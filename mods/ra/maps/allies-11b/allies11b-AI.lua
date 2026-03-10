@@ -19,7 +19,7 @@ local IsBuilding
 local IsGroundUnit
 local IsGroundActor
 local CheckSecuredArea
-local ReverseTable
+local ReversePosTable
 local CheckPlayerMoney
 local GrantCash
 local InsertBlueprints
@@ -91,6 +91,15 @@ local AtkProductionInterval
 local FirstAirDelays = { easy = DateTime.Seconds(180), normal = DateTime.Seconds(120), hard = DateTime.Seconds(60) }
 local FirstAirDelay
 
+-- nw 85, 29 | se 104, 75
+-- nw 76, 77 | se 104, 102
+local EastArea = {
+	{ nw = CPos.New(85, 29), se = CPos.New(104, 75) },
+	{ nw = CPos.New(76, 77), se = CPos.New(104, 102) }
+}
+
+local RiverArea = { nw = CPos.New(51, 17), se = CPos.New(94, 17) }
+
 ---@type blueprint[]
 local USSRBaseBlueprints =
 {
@@ -145,8 +154,8 @@ local BadGuyBaseExtraBlueprints =
     { type = "proc", actor = BGProc, cost = 1400, shape = { 3, 4 }, location = CPos.New(100, 36) },
 
     { type = "barr", actor = BGBarr, cost = 500, shape = { 2, 3 }, location = CPos.New(97, 36), owner = BadGuy, producer = true },
-    { type = "weap", actor = BGWeap, cost = 2000, shape = { 3, 3 }, location = CPos.New(91, 37),owner = BadGuy, producer = true },
-    { type = "spen", actor = BGSpen, cost = 800, shape = { 3, 3 }, location = CPos.New(80, 32),owner = BadGuy, producer = true },
+    { type = "weap", actor = BGWeap, cost = 2000, shape = { 3, 3 }, location = CPos.New(91, 37), owner = BadGuy, producer = true },
+    { type = "spen", actor = BGSpen, cost = 800, shape = { 3, 3 }, location = CPos.New(80, 32), owner = BadGuy, producer = true },
 
 	{ type = "afld", actor = BGAfld1, cost = 500, shape = { 3, 2 }, location = CPos.New(87, 30) },
 	{ type = "afld", actor = BGAfld2, cost = 500, shape = { 3, 2 }, location = CPos.New(87, 32) },
@@ -339,15 +348,24 @@ end
 ---@param a actor
 ---@return boolean
 function IsGroundActor(a)
-	return IsGroundUnit(a) and IsBuilding(a)
+	return IsGroundUnit(a) or IsBuilding(a)
 end
 
+-- checkarea 1
+-- nw 76, 77 | se 104, 102
+-- nw 85, 29 | se 104, 75
+
+-- CheckSecuredArea( CPos.New(76, 77), CPos.New(104, 102), IsGroundActor )
+-- CheckSecuredArea( CPos.New(85, 29), CPos.New(104, 75), IsGroundActor )
+
+---@param NW cpos
+---@param SE cpos
 ---@param action fun(actor: actor): boolean
 ---@return boolean
-function CheckSecuredArea(action)
-	local nw = WPos.New( (CPos.New(61, 19)).X * 1024,  (CPos.New(61, 19)).Y * 1024, 0)
-    local se = WPos.New( (CPos.New(105, 103)).X * 1024, (CPos.New(105, 103)).Y * 1024, 0)
-	
+function CheckSecuredArea( NW, SE, action)
+	local nw = WPos.New( NW.X * 1024, NW.Y * 1024, 0)
+    local se = WPos.New( SE.X * 1024, SE.Y * 1024, 0)
+
 	local actors = Map.ActorsInBox( nw, se, function(a)
 		return (a.Owner == Greece or a.Owner == England) and action(a)
     end)
@@ -357,7 +375,7 @@ end
 
 ---@param array cpos[]
 ---@return cpos[]
-function ReverseTable(array)
+function ReversePosTable(array)
 	local table_to_reverse = array
 	local reversed_table = { }
 
@@ -478,7 +496,7 @@ end
 ---@param cyard actor
 ---@param owner player
 function BuildBlueprint(blueprints, blueprint, cyard, owner)
-	Trigger.AfterDelay(Actor.BuildTime(blueprint.type), function()
+	Trigger.AfterDelay(5--[[Actor.BuildTime(blueprint.type)]], function()
 		if cyard.IsDead or cyard.Owner ~= owner then
 			return
 		elseif CheckPlayerMoney(owner) <= 299 and IsHarvesterMissing(owner) then
@@ -513,14 +531,15 @@ function OnBlueprintBuilt(actor, blueprint, owner)
 			return
 		end
 
+		-- If the producer structure is destroyed while producing and then rebuilt - The whole "Produce" logic breaks
 		if blueprint.type == "barr" then
-			ProduceInfantry(actor, owner)
+			ProduceInfantry(blueprint.actor, owner)
 		elseif blueprint.type == "weap" then
-			ProduceArmor(actor, owner)
+			ProduceArmor(blueprint.actor, owner)
 		elseif blueprint.type == "afld" then
-			--ProduceAircraft(actor, owner)
+			--ProduceAircraft(blueprint.actor, owner)
 		elseif blueprint.type == "spen" then
-			ProduceSubs(actor, owner)
+			ProduceSubs(blueprint.actor, owner)
 		end
 	end)
 end
@@ -662,15 +681,18 @@ function ProduceInfantry(producer, owner)
         return
 	end
 
-    local toBuild = { Utils.Random(InfantryTypes) }
-    local path = Utils.Random(SelectLandAtkPaths(owner))
+	local nw_1, se_1, nw_2, se_2 = EastArea[1].nw, EastArea[1].se, EastArea[2].nw, EastArea[2].se
 
-	if owner == BadGuy and not CheckSecuredArea(IsGroundActor)  then
-		Trigger.AfterDelay(DateTime.Minutes(2), function()
+	if owner == BadGuy and not CheckSecuredArea( nw_1, se_1, IsGroundActor) and not CheckSecuredArea( nw_2, se_2, IsGroundActor)  then
+		Media.Debug("A")
+		Trigger.AfterDelay(DateTime.Seconds(30), function()
 			ProduceInfantry(producer, owner)
 		end)
 		return
 	end
+
+	local toBuild = { Utils.Random(InfantryTypes) }
+    local path = Utils.Random(SelectLandAtkPaths(owner))
 
 	owner.Build(toBuild, function(units)
         if owner == USSR then
@@ -724,8 +746,10 @@ function ProduceArmor(producer, owner)
         return
     end
 
-	if owner == BadGuy and not CheckSecuredArea(IsGroundActor)  then
-		Trigger.AfterDelay(DateTime.Minutes(2), function()
+	local nw_1, se_1, nw_2, se_2 = EastArea[1].nw, EastArea[1].se, EastArea[2].nw, EastArea[2].se
+
+	if owner == BadGuy and not CheckSecuredArea( nw_1, se_1, IsGroundActor) and not CheckSecuredArea( nw_2, se_2, IsGroundActor)  then
+		Trigger.AfterDelay(DateTime.Seconds(30), function()
 			ProduceArmor(producer, owner)
 		end)
 		return
@@ -784,6 +808,7 @@ function CreateCombatGroup(producer, owner, unit)
 			end)
 		else -- Combat role conditionals
 			SendUnits(VehicleBadGuyAttackGroup, path)
+			VehicleBadGuyAttackGroup = { }
 			Trigger.AfterDelay(DateTime.Minutes(2), function()
 				ProduceArmor(producer, owner)
 			end)
@@ -1037,12 +1062,12 @@ function ProduceSubs(producer, owner)
         return
 	end
 
-	if LSTNeededFlag == true then
+	if LSTNeededFlag == true and owner == USSR then
 		ProduceLST(producer, owner)
 		return
 	end
 
-	if CheckSecuredArea(IsNaval) then
+	if CheckSecuredArea( RiverArea.nw, RiverArea.se, IsNaval) then
 		local toBuild = { Utils.Random(SubTypes) }
 		local path = NavalAtkPath
 		owner.Build(toBuild, function(units)
@@ -1122,7 +1147,7 @@ end
 ---@param path cpos[]
 function SendLST(lst, path)
 	local go_path = path
-	local return_path = ReverseTable(path)
+	local return_path = ReversePosTable(path)
 
 	Trigger.OnIdle(lst, function()
 		if not lst.IsDead then
@@ -1173,7 +1198,6 @@ function SetupAIActivities()
     BuildBase(USSRBaseBlueprints, USSRFact, USSR)
 
 	PrepareAircraftReinforcements()
-
 end
 
 -- Activated once USSR is alerted

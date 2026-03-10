@@ -83,6 +83,9 @@ local StartingCash
 local AlertUSSRDelays = { easy = DateTime.Minutes(4), normal = DateTime.Minutes(3), hard = DateTime.Minutes(2), challenge = DateTime.Minutes(2) }
 local AlertUSSRDelay
 
+local TimeLimits = { easy = DateTime.Minutes(80), normal = DateTime.Minutes(60), hard = DateTime.Minutes(50), challenge = DateTime.Minutes(50) }
+local TimeLimit
+
 ---------------------------------------
 
 local McvReinforcements1 = { actors = { "mcv" }, entryPath = { MCVEntry1.Location, MCVDst1.Location } }
@@ -194,7 +197,7 @@ function alert.AlertBadGuy()
 	end
 	BadGuyAlerted = true
 	Media.Debug("Alert BadGuy")
-	--RunBadGuyActivities()
+	RunBadGuyActivities()
 end
 
 function alert.AlertTurkey()
@@ -604,6 +607,8 @@ local function __BASE_TRIGGERS__() end
 
 SetDifficulty = function()
 	OnlyOneMCV = OnlyOneMCVCheck[Difficulty]
+
+	TimeLimit = TimeLimits[Difficulty]
 	StartingCash = StartingCashReserves[Difficulty]
 
 	AlertUSSRDelay = AlertUSSRDelays[Difficulty]
@@ -693,5 +698,7 @@ WorldLoaded = function()
 	SetupAIActivities()
 
 	TimerColor = Player.GetPlayer("Greece").Color
-	DateTime.TimeLimit = DateTime.Minutes(60) --Change regarding dificulty
+	Trigger.AfterDelay(DateTime.Seconds(1), function()
+		DateTime.TimeLimit = TimeLimit
+	end)
 end

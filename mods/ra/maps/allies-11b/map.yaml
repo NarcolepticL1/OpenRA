@@ -879,13 +879,6 @@ Actors:
 		Location: 72,86
 		Owner: USSR
 		Facing: 512
-	SouthSub7: ss
-		Location: 68,87
-		Owner: USSR
-		Facing: 512
-	Waypoint31: waypoint
-		Location: 46,26
-		Owner: Neutral
 	Waypoint32: waypoint
 		Location: 64,77
 		Faction: england
@@ -902,14 +895,8 @@ Actors:
 		Location: 43,100
 		Faction: england
 		Owner: USSR
-	Waypoint96: waypoint
-		Location: 71,17
-		Owner: Neutral
 	DefaultCameraPosition: waypoint
 		Location: 35,98
-		Owner: Neutral
-	Waypoint99: waypoint
-		Location: 67,60
 		Owner: Neutral
 	USSRDome: dome
 		Owner: USSR
@@ -983,40 +970,31 @@ Actors:
 		Owner: Neutral
 	MammothPatrolWP1: waypoint
 		Location: 55,60
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	MammothPatrolWP2: waypoint
 		Location: 67,61
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	MammothPatrolWP3: waypoint
 		Location: 74,67
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	MammothPatrolWP4: waypoint
 		Location: 67,68
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	MammothPatrolWP5: waypoint
 		Location: 60,71
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	MammothPatrolWP6: waypoint
 		Location: 50,67
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	MammothPatrolWP7: waypoint
 		Location: 41,60
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	MammothPatrolWP8: waypoint
 		Location: 35,53
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	MammothPatrolWP9: waypoint
 		Location: 43,53
-		Faction: england
-		Owner: USSR
+		Owner: Neutral
 	BGPower1: powr
 		Location: 102,34
 		Owner: BadGuy
@@ -1024,8 +1002,9 @@ Actors:
 		Location: 91,30
 		Owner: BadGuy
 	BGAttackRallyWP: waypoint
-		Owner: BadGuy
 		Location: 97,45
+		Faction: soviet
+		Owner: Neutral
 	Actor340: dome
 		Owner: BadGuy
 		Location: 125,1
@@ -1035,10 +1014,6 @@ Actors:
 	USSRLoadUnits: waypoint
 		Location: 55,29
 		Owner: Neutral
-	USSRUnloadUnits: waypoint
-		Location: 57,97
-		Faction: england
-		Owner: USSR
 	IslandTsla3: tsla
 		Location: 67,48
 		Owner: Turkey
@@ -1238,14 +1213,16 @@ Actors:
 	TransportPoint: waypoint
 		Owner: Neutral
 		Location: 53,27
-	Actor201: powr
-		Owner: Greece
-		Location: 95,86
-	Actor202: e1
-		Owner: Greece
-		Facing: 384
-		Location: 92,88
-		SubCell: 3
+	USSRUnloadUnitsWest: waypoint
+		Location: 57,97
+		Owner: Neutral
+	USSRUnloadUnitsEast: waypoint
+		Owner: Neutral
+		Location: 90,64
+	SouthSub7: ss
+		Owner: USSR
+		Facing: 512
+		Location: 69,87
 
 Rules: ra|rules/campaign-rules.yaml, ra|rules/campaign-tooltips.yaml, ra|rules/campaign-palettes.yaml, rules.yaml
 

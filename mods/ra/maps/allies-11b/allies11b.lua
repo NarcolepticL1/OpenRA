@@ -99,6 +99,7 @@ local EastArea = {
 }
 
 local RiverArea = { nw = CPos.New(51, 17), se = CPos.New(95, 102) }
+local BridgeArea = { nw = CPos.New(61, 49), se = CPos.New(73, 57) }
 
 local McvReinforcements1 = { actors = { "mcv" }, entryPath = { MCVEntry1.Location, MCVDst1.Location } }
 local McvReinforcements2 = { actors = { "mcv" }, entryPath = { MCVEntry2.Location, MCVDst2.Location } }
@@ -106,8 +107,6 @@ local McvReinforcements3 = { actors = { "mcv" }, entryPath = { MCVEntry3.Locatio
 
 local EnglandLeftEarlyNavy = { actors = { "pt", "pt", "dd", "dd" }, entryPath = { EnglandLeftEntry.Location } }
 local EnglandRightEarlyNavy = { actors = { "pt", "pt", "dd", "dd" }, entryPath = { EnglandRightEntry.Location } }
-local EnglandLeftLateNavy = { actors = { "ca" }, entryPath = { EnglandLeftEntry.Location } }
-local EnglandRightLateNavy = { actors = { "ca" }, entryPath = { EnglandRightEntry.Location } }
 
 ---@type cpos[]
 local SeaLeftPatrolPath = {
@@ -118,7 +117,16 @@ EnglandLeftWP6.Location, EnglandLeftDst.Location
 
 ---@type cpos[]
 local SeaRightPatrolPath = {
-EnglandRightEntry.Location, EnglandRightWP1.Location, EnglandRightWP2.Location, EnglandRightWP3.Location, EnglandRightWP4.Location, EnglandRightWP5.Location, EnglandRightWP6.Location, EnglandRightDst.Location
+EnglandRightEntry.Location, EnglandRightWP1.Location, EnglandRightWP2.Location,
+EnglandRightWP3.Location, EnglandRightWP4.Location, EnglandRightWP5.Location, 
+EnglandRightWP6.Location, EnglandRightDst.Location
+}
+
+EdgeOfRiverTriggerActivator = {
+	CPos.New(63, 17), CPos.New(64, 17), CPos.New(65, 17), CPos.New(66, 17), CPos.New(67, 17), CPos.New(68, 17), CPos.New(69, 17), CPos.New(70, 17),
+	CPos.New(71, 17), CPos.New(72, 17), CPos.New(73, 17), CPos.New(74, 17), CPos.New(75, 17), CPos.New(76, 17), CPos.New(77, 17), CPos.New(78, 17),
+	CPos.New(63, 18), CPos.New(64, 18), CPos.New(65, 18), CPos.New(66, 18), CPos.New(67, 18), CPos.New(68, 18), CPos.New(69, 18), CPos.New(70, 18),
+	CPos.New(71, 18), CPos.New(72, 18), CPos.New(73, 18), CPos.New(74, 18), CPos.New(75, 18), CPos.New(76, 18), CPos.New(77, 18), CPos.New(78, 18),
 }
 
 local USSRBase = { USSRFact, USSRPower1, USSRPower2, USSRPower3, USSRPower4, USSRBarr, USSRWeap, USSRSpen, USSRProc, USSRSilo1, USSRSilo2, USSRSilo3, USSRDome, USSRAfld1, USSRAfld2, USSRAfld3, USSRFix, USSRFtur1, USSRFtur2, USSRTsla1, USSRTsla2, USSRSam1, USSRSam2, USSRSam3, USSRSam4
@@ -358,20 +366,24 @@ function OrderBlockers(actors, rally)
 end
 
 function CheckBridgeStatus()
-	local bridge = Map.ActorsInCircle(a, LSTDetectionRange, function(actor)
-		return actor.Type == "br3"
-	end)
-	--bridge.Destroy()
-end
-
-
-function GetBridge()
-	local bridgepart1 = Utils.Where(Map.ActorsInWorld, function(actor) return actor.Type == "br2" end)[1]
-	local bridgepart2 = Utils.Where(Map.ActorsInWorld, function(actor) return actor.Type == "br3" end)[1]
+	local NW = WPos.New(BridgeArea.nw.X * 1024, BridgeArea.nw.Y * 1024, 0)
+	local SE = WPos.New(BridgeArea.se.X * 1024, BridgeArea.se.Y * 1024, 0)
 	
-	Media.Debug("Bridge: " .. tostring(bridgepart1))
-	Media.Debug("Bridge: " .. tostring(bridgepart2))
+	local bridges = Map.ActorsInBox(NW, SE, function(actors)
+		return actors.Type == "br3" or actors.Type == "br2" or actors.Type == "br1"
+	end)
+	D(#bridges)
+	--[[
+	local destroyableBridges = Utils.Shuffle(bridges)
+
+	for i = 1, #destroyableBridges do
+		Trigger.AfterDelay(2*i, destroyableBridges[i].Kill)	
+	end
+	]]
 end
+
+
+
 
 --[[
 ---@param types string[]
@@ -649,6 +661,20 @@ function EnemySubsReinforcements()
     end)
 end
 
+function FinishTimer()
+   	DateTime.TimeLimit = 0
+	for i = 0, 5, 1 do
+		local c = TimerColor
+		if i % 2 == 0 then
+			c = HSLColor.White
+		end
+        Trigger.AfterDelay(DateTime.Seconds(i), function()
+              UserInterface.SetMissionText(UserInterface.GetFluentMessage("the-navy-has-arrived"), c)
+        end)
+    end
+	Trigger.AfterDelay(DateTime.Seconds(6), function() UserInterface.SetMissionText("") end)
+end
+
 ------------------------------------------------------------------
 ----------------	ROAD PATROLS - END        --------------------
 ------------------------------------------------------------------
@@ -683,7 +709,7 @@ InitTriggers = function()
 
 	Trigger.OnTimerExpired(TimerExpiredSendNavy)
 
-	--Trigger.AfterDelay(DateTime.Seconds(10), GetBridge)
+	Trigger.AfterDelay(DateTime.Seconds(30), CheckBridgeStatus)
 
 end
 

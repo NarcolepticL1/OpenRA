@@ -19,6 +19,8 @@ local IsBuilding
 local IsGroundUnit
 local IsGroundActor
 local CheckSecuredArea
+local GroundActorOnWestSide
+local GroundActorOnEastSide
 local ReversePosTable
 local CheckPlayerMoney
 local GrantCash
@@ -90,8 +92,11 @@ local AtkProductionInterval
 local FirstAirDelays = { easy = DateTime.Seconds(180), normal = DateTime.Seconds(120), hard = DateTime.Seconds(60) }
 local FirstAirDelay
 
--- nw 85, 29 | se 104, 75
--- nw 76, 77 | se 104, 102
+local WestArea = {
+	{ nw = CPos.New(30, 17), se = CPos.New(76, 79) },
+	{ nw = CPos.New(30, 80), se = CPos.New(64, 102) }
+}
+
 local EastArea = {
 	{ nw = CPos.New(85, 29), se = CPos.New(104, 75) },
 	{ nw = CPos.New(76, 77), se = CPos.New(104, 102) }
@@ -154,7 +159,7 @@ local BadGuyBaseExtraBlueprints =
 
     { type = "barr", actor = BGBarr, cost = 500, shape = { 2, 3 }, location = CPos.New(97, 36), owner = BadGuy, producer = true },
     { type = "weap", actor = BGWeap, cost = 2000, shape = { 3, 3 }, location = CPos.New(91, 37), owner = BadGuy, producer = true },
-    { type = "spen", actor = BGSpen, cost = 800, shape = { 3, 3 }, location = CPos.New(80, 32), owner = BadGuy, producer = true },
+    { type = "spen", actor = BGSpen, cost = 800, shape = { 3, 3 }, location = CPos.New(79, 32), owner = BadGuy, producer = true },
 
 	{ type = "afld", actor = BGAfld1, cost = 500, shape = { 3, 2 }, location = CPos.New(87, 30) },
 	{ type = "afld", actor = BGAfld2, cost = 500, shape = { 3, 2 }, location = CPos.New(87, 32) },
@@ -305,7 +310,7 @@ local LSTNeededFlag = false
 local LSTDetectionPivot = LstDetectionZone
 local LSTDetectionRange = WDist.FromCells(5)
 
-local LSTPathRoute = { LstDetectionZone.Location, USSRUnloadUnits.Location }
+local LSTPathRoute = { LstDetectionZone.Location, USSRUnloadUnitsWest.Location }
 
 --------------------------------------------------------------------
 -----------------	    DATA BLOCK - END	------------------------
@@ -347,15 +352,8 @@ end
 ---@param a actor
 ---@return boolean
 function IsGroundActor(a)
-	return IsGroundUnit(a) or IsBuilding(a)
+	return (IsGroundUnit(a) or IsBuilding(a)) and not IsNaval(a)
 end
-
--- checkarea 1
--- nw 76, 77 | se 104, 102
--- nw 85, 29 | se 104, 75
-
--- CheckSecuredArea( CPos.New(76, 77), CPos.New(104, 102), IsGroundActor )
--- CheckSecuredArea( CPos.New(85, 29), CPos.New(104, 75), IsGroundActor )
 
 ---@param NW cpos
 ---@param SE cpos
@@ -371,6 +369,35 @@ function CheckSecuredArea( NW, SE, action)
 
 	return #actors > 0
 end
+
+---@return boolean
+function GroundActorOnWestSide()
+	local nw_1, se_1, nw_2, se_2 = WestArea[1].nw, WestArea[1].se, WestArea[2].nw, WestArea[2].se
+
+	if CheckSecuredArea( nw_1, se_1, IsGroundActor) and CheckSecuredArea( nw_2, se_2, IsGroundActor) then
+		return true
+	else
+		return false
+	end
+end
+
+---@return boolean
+function GroundActorOnEastSide()
+	local nw_1, se_1, nw_2, se_2 = EastArea[1].nw, EastArea[1].se, EastArea[2].nw, EastArea[2].se
+
+	if CheckSecuredArea( nw_1, se_1, IsGroundActor) and CheckSecuredArea( nw_2, se_2, IsGroundActor) then
+		return true
+	else
+		return false
+	end
+end
+
+-- checkarea 1
+-- nw 76, 77 | se 104, 102
+-- nw 85, 29 | se 104, 75
+
+-- CheckSecuredArea( CPos.New(76, 77), CPos.New(104, 102), IsGroundActor )
+-- CheckSecuredArea( CPos.New(85, 29), CPos.New(104, 75), IsGroundActor )
 
 ---@param array cpos[]
 ---@return cpos[]
@@ -680,10 +707,14 @@ function ProduceInfantry(producer, owner)
         return
 	end
 
-	local nw_1, se_1, nw_2, se_2 = EastArea[1].nw, EastArea[1].se, EastArea[2].nw, EastArea[2].se
+	if owner == BadGuy and not GroundActorOnEastSide then
+		Trigger.AfterDelay(DateTime.Seconds(30), function()
+			ProduceInfantry(producer, owner)
+		end)
+		return
+	end
 
-	if owner == BadGuy and not CheckSecuredArea( nw_1, se_1, IsGroundActor) and not CheckSecuredArea( nw_2, se_2, IsGroundActor)  then
-		Media.Debug("A")
+	if owner == BadGuy and not GroundActorOnWestSide then
 		Trigger.AfterDelay(DateTime.Seconds(30), function()
 			ProduceInfantry(producer, owner)
 		end)
@@ -699,7 +730,7 @@ function ProduceInfantry(producer, owner)
 			if #InfantryUSSRAttackGroup >= InfantryAttackGroupSize then
                SendUnits(InfantryUSSRAttackGroup, path)
                 InfantryUSSRAttackGroup = { }
-                Trigger.AfterDelay(DateTime.Minutes(2), function()
+                Trigger.AfterDelay(AtkProductionInterval, function()
                     ProduceInfantry(producer, owner)
 			    end)
             else
@@ -712,7 +743,7 @@ function ProduceInfantry(producer, owner)
             if #InfantryBadGuyAttackGroup >= InfantryAttackGroupSize then
                 SendUnits(InfantryBadGuyAttackGroup, path)
                 InfantryBadGuyAttackGroup = { }
-                Trigger.AfterDelay(DateTime.Minutes(2), function()
+                Trigger.AfterDelay(AtkProductionInterval, function()
                     ProduceInfantry(producer, owner)
 			    end)
             else
@@ -724,7 +755,8 @@ function ProduceInfantry(producer, owner)
 	end)
 end
 
--- Didn't add a Dog production func() cuz there is no kenn on USSR main base. Added extra dogs instead
+-- Didn't add a Dog production func() because there is no kenn on USSR main base. Added extra dogs instead.
+-- Added initial dogs to BadGuy
 
 -----------------------
 -----------------------
@@ -1204,8 +1236,7 @@ function RunUSSRActivities()
 
     ProduceInfantry(USSRBarr, USSR)
 	ProduceArmor(USSRWeap, USSR)
-
-    --ProduceSubs(USSRSpen, USSR)
+    ProduceSubs(USSRSpen, USSR)
 end
 
 -- Activated once BadGuy is alerted

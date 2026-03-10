@@ -714,7 +714,7 @@ function ProduceInfantry(producer, owner)
 		return
 	end
 
-	if owner == BadGuy and not GroundActorOnWestSide then
+	if owner == USSR and not GroundActorOnWestSide then
 		Trigger.AfterDelay(DateTime.Seconds(30), function()
 			ProduceInfantry(producer, owner)
 		end)
@@ -777,9 +777,14 @@ function ProduceArmor(producer, owner)
         return
     end
 
-	local nw_1, se_1, nw_2, se_2 = EastArea[1].nw, EastArea[1].se, EastArea[2].nw, EastArea[2].se
+	if owner == BadGuy and not GroundActorOnEastSide then
+		Trigger.AfterDelay(DateTime.Seconds(30), function()
+			ProduceArmor(producer, owner)
+		end)
+		return
+	end
 
-	if owner == BadGuy and not CheckSecuredArea( nw_1, se_1, IsGroundActor) and not CheckSecuredArea( nw_2, se_2, IsGroundActor)  then
+	if owner == USSR and not GroundActorOnWestSide then
 		Trigger.AfterDelay(DateTime.Seconds(30), function()
 			ProduceArmor(producer, owner)
 		end)

@@ -372,7 +372,6 @@ function CheckBridgeStatus()
 	local bridges = Map.ActorsInBox(NW, SE, function(actors)
 		return actors.Type == "br3" or actors.Type == "br2" or actors.Type == "br1"
 	end)
-	D(#bridges)
 	--[[
 	local destroyableBridges = Utils.Shuffle(bridges)
 

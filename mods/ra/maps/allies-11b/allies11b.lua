@@ -56,6 +56,7 @@ local AlertTurkey
 
 local CreateZoneTriggers
 local PrepareBadGuyAlerts
+local TurkeyDefensiveCall
 
 local InitialSovietPatrols
 local InitialSovietWarning
@@ -71,6 +72,7 @@ local GroupHuntOnDamaged
 local OrderBlockers
 
 local ForwardComDiscovery
+local EnemySubsReinforcements
 
 ---------------------------------------
 
@@ -86,7 +88,17 @@ local AlertUSSRDelay
 local TimeLimits = { easy = DateTime.Minutes(80), normal = DateTime.Minutes(60), hard = DateTime.Minutes(50), challenge = DateTime.Minutes(50) }
 local TimeLimit
 
+local ReinforceSubAmounts = { easy = {"ss"}, normal = {"ss"}, hard = {"ss", "ss"}, challenge = {"ss", "ss"} }
+local ReinforceSubAmount
+
 ---------------------------------------
+
+local EastArea = {
+	{ nw = CPos.New(85, 29), se = CPos.New(104, 75) },
+	{ nw = CPos.New(76, 77), se = CPos.New(104, 102) }
+}
+
+local RiverArea = { nw = CPos.New(51, 17), se = CPos.New(95, 102) }
 
 local McvReinforcements1 = { actors = { "mcv" }, entryPath = { MCVEntry1.Location, MCVDst1.Location } }
 local McvReinforcements2 = { actors = { "mcv" }, entryPath = { MCVEntry2.Location, MCVDst2.Location } }
@@ -146,18 +158,21 @@ function IsNaval(a)
 	end)
 end
 
+---@param NW cpos
+---@param SE cpos
 ---@param action fun(actor: actor): boolean
 ---@return boolean
-function CheckSecuredArea(action)
-	local nw = WPos.New( (CPos.New(61, 19)).X * 1024,  (CPos.New(61, 19)).Y * 1024, 0)
-    local se = WPos.New( (CPos.New(105, 103)).X * 1024, (CPos.New(105, 103)).Y * 1024, 0)
-	
+function CheckSecuredArea( NW, SE, action)
+	local nw = WPos.New( NW.X * 1024, NW.Y * 1024, 0)
+    local se = WPos.New( SE.X * 1024, SE.Y * 1024, 0)
+
 	local actors = Map.ActorsInBox( nw, se, function(a)
 		return (a.Owner == Greece or a.Owner == England) and action(a)
     end)
 
 	return #actors > 0
 end
+
 --[[
 --@return boolean
 AreIslandTeslasDown = function()
@@ -206,7 +221,7 @@ function alert.AlertTurkey()
 	end
 	USSRTurkey = true
 	Media.Debug("Alert Turkey")
-	--RunUSSRActivities()
+	EnemySubsReinforcements()
 end
 
 --- Create an imitation of the eastern land area's original zone footprint.
@@ -247,6 +262,13 @@ function alert.PrepareBadGuyAlerts()
 	local mainWestStructures = USSR.GetActorsByTypes({ "afld", "barr", "dome", "fact", "proc", "spen", "stek", "weap" })
 	Utils.Do(mainWestStructures, function(structure)
 		Trigger.OnKilledOrCaptured(structure, alert.AlertBadGuy)
+	end)
+end
+
+function alert.TurkeyDefensiveCall()
+	OnAnyDamaged(IslandDefenses, function(victim, attacker)
+		alert.AlertTurkey()
+		Trigger.Clear(victim, "OnDamaged")
 	end)
 end
 
@@ -415,13 +437,6 @@ function SendRevengeSub()
 	local sub = idleSubs[1]
 	IdleHunt(sub)
 	Trigger.OnKilled(sub, SendRevengeSub)
-end
-
-function alert.TurkeyDefensiveCall()
-	OnAnyDamaged(IslandDefenses, function(victim, attacker)
-		alert.AlertTurkey()
-		Trigger.Clear(victim, "OnDamaged")
-	end)
 end
 
 -- Check patrol behavior to fit the "Area Guard" idea
@@ -600,6 +615,40 @@ function ForwardComDiscovery()
 	end)
 end
 
+-- Constant out of map attack if eastern Forward Command is not dead
+function EnemySubsReinforcements()
+    if BGFcom.IsDead then
+		return
+	end
+
+	Media.DisplayMessage(UserInterface.GetFluentMessage("enemy-subs-alerted"), "Command")
+
+	if CheckSecuredArea( RiverArea.nw, RiverArea.se, IsNaval) then
+		local leftSpawnPoint = EnglandLeftDst.Location
+		local rightSpawnPoint = EnglandRightDst.Location
+
+		Trigger.AfterDelay(DateTime.Seconds(1), function()
+			local subsLeft = Reinforcements.Reinforce(USSR, ReinforceSubAmount, { leftSpawnPoint, leftSpawnPoint + CVec.New(0, 2) })
+			local subsRight = Reinforcements.Reinforce(USSR, ReinforceSubAmount, { rightSpawnPoint, rightSpawnPoint + CVec.New(0, 2) })
+			--This could be refactored
+			Utils.Do(subsLeft, function(u)
+				if not u.IsDead then
+					IdleHunt(u)
+				end
+			end)
+			Utils.Do(subsRight, function(u)
+				if not u.IsDead then
+					IdleHunt(u)
+				end
+			end)
+		end)
+	end
+
+    Trigger.AfterDelay(DateTime.Minutes(3), function()
+        EnemySubsReinforcements()
+    end)
+end
+
 ------------------------------------------------------------------
 ----------------	ROAD PATROLS - END        --------------------
 ------------------------------------------------------------------
@@ -612,6 +661,7 @@ SetDifficulty = function()
 	StartingCash = StartingCashReserves[Difficulty]
 
 	AlertUSSRDelay = AlertUSSRDelays[Difficulty]
+	ReinforceSubAmount = ReinforceSubAmounts[Difficulty]
 end
 
 InitTriggers = function()
@@ -622,10 +672,11 @@ InitTriggers = function()
 	InitialSovietPatrols()
 	InitialSovietWarning()
 
+	alert.TurkeyDefensiveCall()
+
 	ForwardComDiscovery()
 
 	alert.PrepareBadGuyAlerts()
-
 	Trigger.AfterDelay(AlertUSSRDelay, function()
 		alert.AlertUSSR()
 	end)

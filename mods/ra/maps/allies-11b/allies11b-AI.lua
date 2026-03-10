@@ -61,7 +61,6 @@ local ScheduleAirWave
 local PrepareAircraftReinforcements
 ---
 local ProduceSubmarines
-local EnemySubsReinforcements
 
 ---@alias blueprint { type: string, actor: actor, cost: integer, shape: integer[], location: cpos, owner?: player, producer?: boolean, northwestEdge?: wpos, southeastEdge?: wpos }
 ---@alias guard_pos { group: string[], location: cpos }
@@ -98,7 +97,7 @@ local EastArea = {
 	{ nw = CPos.New(76, 77), se = CPos.New(104, 102) }
 }
 
-local RiverArea = { nw = CPos.New(51, 17), se = CPos.New(94, 17) }
+local RiverArea = { nw = CPos.New(51, 17), se = CPos.New(95, 102) }
 
 ---@type blueprint[]
 local USSRBaseBlueprints =
@@ -292,7 +291,7 @@ local SovietAirTeams = {
 -- Naval Attacks Data  --
 -------------------------
 
-local SubTypes = { "ss"}
+local SubTypes = { "ss" }
 
 local SubUSSRAttackGroup = { }
 local SubBadGuyAttackGroup = { }

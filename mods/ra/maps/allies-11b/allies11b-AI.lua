@@ -77,8 +77,14 @@ local USSRStartingCash
 local BadGuyCashReserves = { easy = 100000, normal = 100000, hard = 100000, challenge = 100000 }
 local BadGuyStartingCash
 
-local AtkProductionIntervals = { easy = DateTime.Seconds(60), normal = DateTime.Seconds(40), hard = DateTime.Seconds(20), challenge = DateTime.Seconds(20) }
-local AtkProductionInterval
+local InfAtkProductionIntervals = { easy = DateTime.Seconds(60), normal = DateTime.Seconds(40), hard = DateTime.Seconds(20), challenge = DateTime.Seconds(20) }
+local InfAtkProductionInterval
+
+local ArmorAtkProductionIntervals = { easy = DateTime.Seconds(120), normal = DateTime.Seconds(90), hard = DateTime.Seconds(60), challenge = DateTime.Seconds(20) }
+local ArmorAtkProductionInterval
+
+local SubAtkProductionIntervals = { easy = DateTime.Seconds(100), normal = DateTime.Seconds(80), hard = DateTime.Seconds(60), challenge = DateTime.Seconds(20) }
+local SubAtkProductionInterval
 
 local FirstAirDelays = { easy = DateTime.Seconds(180), normal = DateTime.Seconds(120), hard = DateTime.Seconds(60), challenge = DateTime.Seconds(60) }
 local FirstAirDelay
@@ -113,7 +119,8 @@ local EastArea = {
 local RiverArea = { nw = CPos.New(51, 17), se = CPos.New(95, 102) }
 
 -- This is for AntiSpyCountermeasuresTM, a soft counter for spy cash steal
-local AntiSpyCount = 0
+local AntiSpyUSSRCount = 0
+local AntiSpyBGCount = 0
 
 ---@type blueprint[]
 local USSRBaseBlueprints =
@@ -623,6 +630,11 @@ function MaintainBuilding(actor, blueprint, repairThreshold)
 	if blueprint then
 		Trigger.OnKilled(actor, function() blueprint.actor = nil end)
 		Trigger.OnSold(actor, function() blueprint.actor = nil end)
+		--------------- TEST THIS
+		if actor.Type == "proc" then
+
+		end
+		-------------------------
 		if not blueprint.northwestEdge then
 			PrepareBlueprintEdges(blueprint)
 		end
@@ -728,7 +740,7 @@ function ProduceInfantry(producer, owner)
 			if #InfantryUSSRAttackGroup >= InfantryAttackGroupSize then
                SendUnits(InfantryUSSRAttackGroup, path)
                 InfantryUSSRAttackGroup = { }
-                Trigger.AfterDelay(AtkProductionInterval, function()
+                Trigger.AfterDelay(InfAtkProductionInterval, function()
                     ProduceInfantry(producer, owner)
 			    end)
             else
@@ -741,7 +753,7 @@ function ProduceInfantry(producer, owner)
             if #InfantryBadGuyAttackGroup >= InfantryAttackGroupSize then
                 SendUnits(InfantryBadGuyAttackGroup, path)
                 InfantryBadGuyAttackGroup = { }
-                Trigger.AfterDelay(AtkProductionInterval, function()
+                Trigger.AfterDelay(InfAtkProductionInterval, function()
                     ProduceInfantry(producer, owner)
 			    end)
             else
@@ -830,7 +842,7 @@ function CreateCombatGroup(producer, owner, unit)
 				FetchUnitsToTransport(VehicleUSSRAttackGroup, USSRLoadUnits.Location)
 			end
 			VehicleUSSRAttackGroup = { }
-			Trigger.AfterDelay(DateTime.Minutes(2), function()
+			Trigger.AfterDelay(ArmorAtkProductionInterval, function()
 				ProduceArmor(producer, owner)
 			end)
 		end
@@ -843,7 +855,7 @@ function CreateCombatGroup(producer, owner, unit)
 		else -- Combat role conditionals
 			SendUnits(VehicleBadGuyAttackGroup, path)
 			VehicleBadGuyAttackGroup = { }
-			Trigger.AfterDelay(DateTime.Minutes(2), function()
+			Trigger.AfterDelay(ArmorAtkProductionInterval, function()
 				ProduceArmor(producer, owner)
 			end)
 		end
@@ -1114,7 +1126,7 @@ function ProduceSubs(producer, owner)
 							SubUSSRAttackGroup = { }
 						end)
 					end)
-					Trigger.AfterDelay(AtkProductionInterval, function()
+					Trigger.AfterDelay(SubAtkProductionInterval, function()
 						ProduceSubs(producer, owner)
 					end)
 				else
@@ -1127,7 +1139,7 @@ function ProduceSubs(producer, owner)
 				if #SubBadGuyAttackGroup >= SubAttackGroupSize then
 					SendUnits(SubBadGuyAttackGroup, path)
 					SubBadGuyAttackGroup = { }
-					Trigger.AfterDelay(AtkProductionInterval, function()
+					Trigger.AfterDelay(SubAtkProductionInterval, function()
 						ProduceSubs(producer, owner)
 					end)
 				else
@@ -1210,21 +1222,29 @@ local function _______________Other_______________() end
 ---@param ref actor
 function AntiSpyCountermeasuresTM(ref)
 	Trigger.OnInfiltrated(ref, function()
-		AntiSpyCount = AntiSpyCount + 1 
-		if AntiSpyCount == 3 then
-			ref.Owner.Cash = ref.Owner.Cash * 0.5
-		elseif AntiSpyCount == 4 then
-			ref.Owner.Cash = ref.Owner.Cash * 0.25
-		elseif AntiSpyCount == 4 then
-			ref.Owner.Cash = ref.Owner.Cash * 0.1
-		elseif AntiSpyCount >= 5 then
-			ref.Owner.Cash = ref.Owner.Cash * 0
+		local owner = ref.Owner
+
+			if AntiSpyBGCount >= 3 then
+				ref.Owner.Cash = ref.Owner.Cash * 0.5
+			end
+
+		if owner == USSR then
+			AntiSpyUSSRCount = AntiSpyUSSRCount + 1
+			Trigger.AfterDelay(DateTime.Minutes(5), function()
+				AntiSpyUSSRCount = AntiSpyUSSRCount - 1
+			end)
+
+		elseif owner == BadGuy then
+			AntiSpyBGCount = AntiSpyBGCount + 1
+			Trigger.AfterDelay(DateTime.Minutes(5), function()
+				AntiSpyBGCount = AntiSpyBGCount - 1
+			end)
 		end
-		Trigger.AfterDelay(DateTime.Minutes(5), function()
-			AntiSpyCount = AntiSpyCount - 1
-		end)
+
 	end)
 end
+
+
 
 function CreateExtraForces()
 	local DifficultyOrder = { "easy", "normal", "hard", "challenge" }
@@ -1258,7 +1278,9 @@ function SetAIDifficulty()
 	USSRStartingCash = USSRCashReserves[Difficulty]
     BadGuyStartingCash = BadGuyCashReserves[Difficulty]
 
-	AtkProductionInterval = AtkProductionIntervals[Difficulty]
+	InfAtkProductionInterval = InfAtkProductionIntervals[Difficulty]
+	ArmorAtkProductionInterval = ArmorAtkProductionIntervals[Difficulty]
+	SubAtkProductionInterval = SubAtkProductionIntervals[Difficulty]
 
 	InfantryAttackGroupSize = InfantryAttackGroupSizes[Difficulty]
 	VehicleAttackGroupSize = VehicleAttackGroupSizes[Difficulty]

@@ -62,7 +62,7 @@ local HasAirfield
 local ScheduleAirWave
 local PrepareAircraftReinforcements
 ---
-local ProduceSubmarines
+local ProduceSubs
 
 ---@alias blueprint { type: string, actor: actor, cost: integer, shape: integer[], location: cpos, owner?: player, producer?: boolean, northwestEdge?: wpos, southeastEdge?: wpos }
 ---@alias guard_pos { group: string[], location: cpos }

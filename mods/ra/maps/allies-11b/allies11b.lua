@@ -694,6 +694,14 @@ SetDifficulty = function()
 
 	AlertUSSRDelay = AlertUSSRDelays[Difficulty]
 	ReinforceSubAmount = ReinforceSubAmounts[Difficulty]
+
+	if Difficulty ~= "normal" then
+		local BGStartingUnits = BadGuy.GetGroundAttackers()
+		Utils.Do(BGStartingUnits, function(u)
+			Trigger.OnDamaged(u, alert.AlertBadGuy)
+			Trigger.Clear(u, "OnDamaged")
+		end)
+	end
 end
 
 InitTriggers = function()

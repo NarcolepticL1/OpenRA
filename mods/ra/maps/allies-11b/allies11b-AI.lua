@@ -87,15 +87,15 @@ local ExtraTroops = {
 	easy = { },
 	normal = {
 		{ type = "4tnk", location = CPos.New(97, 41), angle = Angle.South },
-		{ type = "dog", location = CPos.New(95, 35), angle = Angle.South, a = 5 },
-		{ type = "dog", location = CPos.New(95, 35), angle = Angle.South, a = 4 },
-		{ type = "dog", location = CPos.New(99, 39), angle = Angle.SouthWest, a = 1 },
-		{ type = "dog", location = CPos.New(103, 39), angle = Angle.SouthEast, a = 2 }
+		{ type = "dog", location = CPos.New(95, 35), angle = Angle.South, subcell = 5 },
+		{ type = "dog", location = CPos.New(95, 35), angle = Angle.South, subcell = 4 },
+		{ type = "dog", location = CPos.New(99, 39), angle = Angle.SouthWest, subcell = 1 },
+		{ type = "dog", location = CPos.New(103, 39), angle = Angle.SouthEast, subcell = 2 }
 	},
 	hard = {
-		{ type = "4tnk", location = CPos.New(95, 32), angle = Angle.South },
+		{ type = "4tnk", location = CPos.New(95, 32), angle = Angle.South }--[[,
 		{ type = "sam", location = CPos.New(87, 36) },
-		{ type = "sam", location = CPos.New(101, 40) }
+		{ type = "sam", location = CPos.New(101, 40) }]]
 	},
 	challenge = { }
 }
@@ -1205,18 +1205,6 @@ end
 -----------------------
 -----------------------
 local function _______________Other_______________() end
-
---[[
-function CreateExtraForces()
-	local count = #ExtraTroops.easy + #ExtraTroops.normal + #ExtraTroops.hard + #ExtraTroops.challenge
-
-	for i = 1, count do
-		local A = ExtraTroops[Difficulty]
-		
-		Actor.Create(A[i].type, true, { Owner = BadGuy, Location = A[i].location })
-	end
-end
-]]
 
 -- This is a soft counter for spy cash steal
 ---@param ref actor

@@ -74,6 +74,15 @@ local OrderBlockers
 local ForwardComDiscovery
 local EnemySubsReinforcements
 
+DebugMsgEnabled = false
+
+--For Debug
+D = function(msg)
+	if DebugMsgEnabled then
+		Media.Debug(tostring(msg))
+	end
+end
+
 ---------------------------------------
 
 local OnlyOneMCVCheck = { easy = false, normal = false, hard = true, challenge = true }
@@ -142,13 +151,11 @@ local SentCruisers = false
 
 local TimeHasEnded = false
 
-USSRAlerted = false
-BadGuyAlerted = false
-TurkeyAlerted = false
+local USSRAlerted = false
+local BadGuyAlerted = false
+local TurkeyAlerted = false
 
 local FcomDiscovered = false
-
-EnglandReinforced = false
 
 ---@type integer|nil Delayed objective to destroy the Forward Command.
 local DestroyForwardCommand
@@ -210,7 +217,7 @@ function alert.AlertUSSR()
 		return
 	end
 	USSRAlerted = true
-	Media.Debug("Alert USSR")
+	D("Alert USSR")
 	RunUSSRActivities()
 end
 
@@ -219,16 +226,16 @@ function alert.AlertBadGuy()
 		return
 	end
 	BadGuyAlerted = true
-	Media.Debug("Alert BadGuy")
+	D("Alert BadGuy")
 	RunBadGuyActivities()
 end
 
 function alert.AlertTurkey()
-	if USSRTurkey then
+	if TurkeyAlerted then
 		return
 	end
-	USSRTurkey = true
-	Media.Debug("Alert Turkey")
+	TurkeyAlerted = true
+	D("Alert Turkey")
 	EnemySubsReinforcements()
 end
 
@@ -687,6 +694,14 @@ SetDifficulty = function()
 
 	AlertUSSRDelay = AlertUSSRDelays[Difficulty]
 	ReinforceSubAmount = ReinforceSubAmounts[Difficulty]
+
+	if Difficulty ~= "normal" then
+		local BGStartingUnits = BadGuy.GetGroundAttackers()
+		Utils.Do(BGStartingUnits, function(u)
+			Trigger.OnDamaged(u, alert.AlertBadGuy)
+			Trigger.Clear(u, "OnDamaged")
+		end)
+	end
 end
 
 InitTriggers = function()

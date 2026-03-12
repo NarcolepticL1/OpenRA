@@ -67,15 +67,6 @@ local ProduceSubs
 ---@alias blueprint { type: string, actor: actor, cost: integer, shape: integer[], location: cpos, owner?: player, producer?: boolean, northwestEdge?: wpos, southeastEdge?: wpos }
 ---@alias guard_pos { group: string[], location: cpos }
 
-DebugMsgEnabled = true
-
---For Debug
-D = function(msg)
-	if DebugMsgEnabled then
-		Media.Debug(tostring(msg))
-	end
-end
-
 --------------------------------------------------------------------
 -----------------	    DATA BLOCK - START	------------------------
 --------------------------------------------------------------------
@@ -89,8 +80,25 @@ local BadGuyStartingCash
 local AtkProductionIntervals = { easy = DateTime.Seconds(60), normal = DateTime.Seconds(40), hard = DateTime.Seconds(20), challenge = DateTime.Seconds(20) }
 local AtkProductionInterval
 
-local FirstAirDelays = { easy = DateTime.Seconds(180), normal = DateTime.Seconds(120), hard = DateTime.Seconds(60) }
+local FirstAirDelays = { easy = DateTime.Seconds(180), normal = DateTime.Seconds(120), hard = DateTime.Seconds(60), challenge = DateTime.Seconds(60) }
 local FirstAirDelay
+
+local ExtraTroops = {
+	easy = { },
+	normal = {
+		{ type = "4tnk", location = CPos.New(97, 41), angle = Angle.South },
+		{ type = "dog", location = CPos.New(95, 35), angle = Angle.South, a = 5 },
+		{ type = "dog", location = CPos.New(95, 35), angle = Angle.South, a = 4 },
+		{ type = "dog", location = CPos.New(99, 39), angle = Angle.SouthWest, a = 1 },
+		{ type = "dog", location = CPos.New(103, 39), angle = Angle.SouthEast, a = 2 }
+	},
+	hard = {
+		{ type = "4tnk", location = CPos.New(95, 32), angle = Angle.South },
+		{ type = "sam", location = CPos.New(87, 36) },
+		{ type = "sam", location = CPos.New(101, 40) }
+	},
+	challenge = { }
+}
 
 local WestArea = {
 	{ nw = CPos.New(30, 17), se = CPos.New(76, 79) },
@@ -104,13 +112,18 @@ local EastArea = {
 
 local RiverArea = { nw = CPos.New(51, 17), se = CPos.New(95, 102) }
 
+-- This is for AntiSpyCountermeasuresTM, a soft counter for spy cash steal
+local AntiSpyCount = 0
+
 ---@type blueprint[]
 local USSRBaseBlueprints =
 {
-	{ type = "apwr", actor = USSRPower1, cost = 500, shape = { 3, 3 }, location = CPos.New(38, 38) },
+	{ type = "powr", actor = USSRPower1, cost = 300, shape = { 2, 3 }, location = CPos.New(37, 41) },
 	{ type = "apwr", actor = USSRPower2, cost = 500, shape = { 3, 3 }, location = CPos.New(49, 39) },
 	{ type = "apwr", actor = USSRPower3, cost = 500, shape = { 3, 3 }, location = CPos.New(34, 43) },
 	{ type = "apwr", actor = USSRPower4, cost = 500, shape = { 3, 3 }, location = CPos.New(30, 44) },
+	{ type = "powr", actor = USSRPower5, cost = 300, shape = { 2, 3 }, location = CPos.New(49, 42) },
+	{ type = "apwr", actor = USSRPower6, cost = 500, shape = { 3, 3 }, location = CPos.New(38, 38) },
 
     { type = "proc", actor = USSRProc, cost = 1400, shape = { 3, 4 }, location = CPos.New(38, 32) },
     { type = "silo", actor = USSRSilo1, cost = 1400, shape = { 1, 1 }, location = CPos.New(47, 36) },
@@ -171,31 +184,11 @@ local BadGuyBaseExtraBlueprints =
 }
 
 ---@type blueprint[]
-local TurkeyBaseBlueprints =
+local BadGuySamBlueprints =
 {
-    -- Power outpost
-	{ type = "apwr", actor = TurkPower1, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48)  }, 
-	{ type = "apwr", actor = TurkPower2, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
-	{ type = "apwr", actor = TurkPower3, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
-	{ type = "apwr", actor = TurkPower4, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
-	{ type = "apwr", actor = TurkPower5, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
-	{ type = "apwr", actor = TurkPower6, cost = 500, shape = { 3, 3 }, location = CPos.New(103, 48) }, 
-	{ type = "sam", actor = TurkSam1, cost = 700, shape = { 2, 1 }, location = CPos.New(103, 48) }, 
-	{ type = "sam", actor = TurkSam2, cost = 700, shape = { 2, 1 }, location = CPos.New(103, 48) }, 
-	{ type = "sam", actor = TurkSam3, cost = 700, shape = { 2, 1 }, location = CPos.New(103, 48) }, 
-	{ type = "sam", actor = TurkSam4, cost = 700, shape = { 2, 1 }, location = CPos.New(103, 48) },
-    -- Island
-    { type = "tsla", actor = IslandTsla1, cost = 1400, shape = { 1, 1 }, location = CPos.New(103, 48) },
-    { type = "tsla", actor = IslandTsla2, cost = 1400, shape = { 1, 1 }, location = CPos.New(103, 48) },
-    { type = "tsla", actor = IslandTsla3, cost = 1400, shape = { 1, 1 }, location = CPos.New(103, 48) },
-    { type = "tsla", actor = IslandTsla4, cost = 1400, shape = { 1, 1 }, location = CPos.New(103, 48) },
-    { type = "tsla", actor = IslandTsla5, cost = 1400, shape = { 1, 1 }, location = CPos.New(103, 48) },
-    { type = "sam", actor = IslandSam1, cost = 700, shape = { 2, 1 }, location = CPos.New(103, 48) }, 
-	{ type = "sam", actor = IslandSam2, cost = 700, shape = { 2, 1 }, location = CPos.New(103, 48) }, 
-	{ type = "sam", actor = IslandSam3, cost = 700, shape = { 2, 2 }, location = CPos.New(103, 48) }, 
-	{ type = "sam", actor = IslandSam4, cost = 700, shape = { 2, 1 }, location = CPos.New(103, 48) }
+    { type = "sam", actor = BGSam1, cost = 700, shape = { 2, 1 }, location = CPos.New(87, 36) },
+    { type = "sam", actor = BGSam2, cost = 700, shape = { 2, 1 }, location = CPos.New(101, 40) }
 }
-
 -------------------------
 -- Land Attacks Data   --
 -------------------------
@@ -251,18 +244,18 @@ local SovietAircraftOrigin = Utils.Random({SovietAircraftEastOrigin1, SovietAirc
 local SovietAirTeams = {
 	{ 
 		types = { "yak" },
-		interval = DateTime.Seconds(105),
+		interval = DateTime.Seconds(120),
 		path = { SovietAircraftOrigin.Location + CVec.New(2, 0), SovietAircraftOrigin.Location + CVec.New(-1, 0) },
 		owner = USSR
 	},
 	{ 
 		types ={ "yak", "yak" },
-		interval = DateTime.Seconds(115),
+		interval = DateTime.Seconds(145),
 		path = { SovietAircraftOrigin.Location + CVec.New(2, 0), SovietAircraftOrigin.Location + CVec.New(-1, 0) }
 	},
 	{ 
 		types = { "mig", "mig" },
-		interval = DateTime.Seconds(165),
+		interval = DateTime.Seconds(215),
 		path = { SovietAircraftOrigin.Location + CVec.New(2, 0), SovietAircraftOrigin.Location + CVec.New(-1, 0) },
 		onWaveDefeated = function()
 			if Difficulty ~= "hard" then
@@ -273,12 +266,12 @@ local SovietAirTeams = {
 		end
 	},
 		{ types = { "mig", "mig", "yak" },
-		interval = DateTime.Seconds(220),
+		interval = DateTime.Seconds(240),
 		path = { SovietAircraftOrigin.Location + CVec.New(2, 0), SovietAircraftOrigin.Location + CVec.New(-1, 0) }
 	},
 	{ 
 		types = { "mig", "mig", "mig", "yak", "yak", "yak", "yak" },
-		interval = DateTime.Seconds(210),
+		interval = DateTime.Seconds(240),
 		path = { SovietAircraftOrigin.Location + CVec.New(2, 0), SovietAircraftOrigin.Location + CVec.New(-1, 0) },
 		onWaveDefeated = function()
 
@@ -287,7 +280,7 @@ local SovietAirTeams = {
 		end
 	},
 		{ types = { "mig", "mig", "yak", "yak" },
-		interval = DateTime.Seconds(210),
+		interval = DateTime.Seconds(240),
 		path = { SovietAircraftOrigin.Location + CVec.New(2, 0), SovietAircraftOrigin.Location + CVec.New(-1, 0) }
 	}
 }
@@ -301,7 +294,7 @@ local SubTypes = { "ss" }
 local SubUSSRAttackGroup = { }
 local SubBadGuyAttackGroup = { }
 
-local SubAttackGroupSizes = { easy = 1, normal = 1, hard = 2, challenge = 2}
+local SubAttackGroupSizes = { easy = 1, normal = 1, hard = 1, challenge = 1 }
 
 local NavalAtkPath = { }
 
@@ -374,7 +367,7 @@ end
 function GroundActorOnWestSide()
 	local nw_1, se_1, nw_2, se_2 = WestArea[1].nw, WestArea[1].se, WestArea[2].nw, WestArea[2].se
 
-	if CheckSecuredArea( nw_1, se_1, IsGroundActor) and CheckSecuredArea( nw_2, se_2, IsGroundActor) then
+	if CheckSecuredArea( nw_1, se_1, IsGroundActor) or CheckSecuredArea( nw_2, se_2, IsGroundActor) then
 		return true
 	else
 		return false
@@ -385,7 +378,7 @@ end
 function GroundActorOnEastSide()
 	local nw_1, se_1, nw_2, se_2 = EastArea[1].nw, EastArea[1].se, EastArea[2].nw, EastArea[2].se
 
-	if CheckSecuredArea( nw_1, se_1, IsGroundActor) and CheckSecuredArea( nw_2, se_2, IsGroundActor) then
+	if CheckSecuredArea( nw_1, se_1, IsGroundActor) or CheckSecuredArea( nw_2, se_2, IsGroundActor) then
 		return true
 	else
 		return false
@@ -522,7 +515,7 @@ end
 ---@param cyard actor
 ---@param owner player
 function BuildBlueprint(blueprints, blueprint, cyard, owner)
-	Trigger.AfterDelay(5--[[Actor.BuildTime(blueprint.type)]], function()
+	Trigger.AfterDelay(Actor.BuildTime(blueprint.type), function()
 		if cyard.IsDead or cyard.Owner ~= owner then
 			return
 		elseif CheckPlayerMoney(owner) <= 299 and IsHarvesterMissing(owner) then
@@ -537,6 +530,9 @@ function BuildBlueprint(blueprints, blueprint, cyard, owner)
 		end
 
 		local actor = Actor.Create(blueprint.type, true, { Owner = owner, Location = blueprint.location })
+		if actor.Type == "proc" then
+			AntiSpyCountermeasuresTM(actor)
+		end
 		OnBlueprintBuilt(actor, blueprint, owner)
 		Trigger.AfterDelay(DateTime.Seconds(10), function()
 			BuildBase(blueprints, cyard, owner)
@@ -707,14 +703,16 @@ function ProduceInfantry(producer, owner)
         return
 	end
 
-	if owner == BadGuy and not GroundActorOnEastSide then
+	if owner == BadGuy and not GroundActorOnEastSide() then
+		Media.Debug("East")
 		Trigger.AfterDelay(DateTime.Seconds(30), function()
 			ProduceInfantry(producer, owner)
 		end)
 		return
 	end
 
-	if owner == USSR and not GroundActorOnWestSide then
+	if owner == USSR and not GroundActorOnWestSide() then
+		Media.Debug("West")
 		Trigger.AfterDelay(DateTime.Seconds(30), function()
 			ProduceInfantry(producer, owner)
 		end)
@@ -777,14 +775,14 @@ function ProduceArmor(producer, owner)
         return
     end
 
-	if owner == BadGuy and not GroundActorOnEastSide then
+	if owner == BadGuy and not GroundActorOnEastSide() then
 		Trigger.AfterDelay(DateTime.Seconds(30), function()
 			ProduceArmor(producer, owner)
 		end)
 		return
 	end
 
-	if owner == USSR and not GroundActorOnWestSide then
+	if owner == USSR and not GroundActorOnWestSide() then
 		Trigger.AfterDelay(DateTime.Seconds(30), function()
 			ProduceArmor(producer, owner)
 		end)
@@ -1201,6 +1199,67 @@ function SendLST(lst, path)
 		end
 	end)
 end
+-----------------------
+-----------------------
+--- 	Other	    ---
+-----------------------
+-----------------------
+local function _______________Other_______________() end
+
+--[[
+function CreateExtraForces()
+	local count = #ExtraTroops.easy + #ExtraTroops.normal + #ExtraTroops.hard + #ExtraTroops.challenge
+
+	for i = 1, count do
+		local A = ExtraTroops[Difficulty]
+		
+		Actor.Create(A[i].type, true, { Owner = BadGuy, Location = A[i].location })
+	end
+end
+]]
+
+-- This is a soft counter for spy cash steal
+---@param ref actor
+function AntiSpyCountermeasuresTM(ref)
+	Trigger.OnInfiltrated(ref, function()
+		AntiSpyCount = AntiSpyCount + 1 
+		if AntiSpyCount == 3 then
+			ref.Owner.Cash = ref.Owner.Cash * 0.5
+		elseif AntiSpyCount == 4 then
+			ref.Owner.Cash = ref.Owner.Cash * 0.25
+		elseif AntiSpyCount == 4 then
+			ref.Owner.Cash = ref.Owner.Cash * 0.1
+		elseif AntiSpyCount >= 5 then
+			ref.Owner.Cash = ref.Owner.Cash * 0
+		end
+		Trigger.AfterDelay(DateTime.Minutes(5), function()
+			AntiSpyCount = AntiSpyCount - 1
+		end)
+	end)
+end
+
+function CreateExtraForces()
+	local DifficultyOrder = { "easy", "normal", "hard", "challenge" }
+
+	for _, difficulty in ipairs(DifficultyOrder) do
+		for _, unit in ipairs(ExtraTroops[difficulty]) do
+			local values = { Owner = BadGuy, Location = unit.location}
+
+			if unit.angle then
+				values.Facing = unit.angle
+			end
+			if unit.a then
+				values.SubCell = unit.a
+			end
+
+			Actor.Create(unit.type, true, values )
+		end
+
+		if difficulty == Difficulty then
+			break
+		end
+	end
+end
 
 --------------------------------------------------------------------
 ----------------	AI ATTACKING BLOCK - END        ----------------
@@ -1220,6 +1279,14 @@ function SetAIDifficulty()
 
 	SubAttackGroupSize = SubAttackGroupSizes[Difficulty]
 
+	CreateExtraForces()
+
+	if Difficulty == "hard" or Difficulty == "challenge" then
+		local sams = BadGuy.GetActorsByType("sam")
+
+		BGSam1 = sams[1]
+		BGSam2 = sams[2]
+	end
 end
 
 function SetupAIActivities()
@@ -1227,7 +1294,7 @@ function SetupAIActivities()
 
     USSR.Cash = USSRStartingCash
     BadGuy.Cash = BadGuyStartingCash
-    
+
     BeginBaseMaintenance(USSRBaseBlueprints, USSR)
     BeginBaseMaintenance(BadGuyBaseBlueprints, BadGuy)
 
@@ -1242,12 +1309,18 @@ function RunUSSRActivities()
     ProduceInfantry(USSRBarr, USSR)
 	ProduceArmor(USSRWeap, USSR)
     ProduceSubs(USSRSpen, USSR)
+
+	AntiSpyCountermeasuresTM(USSRProc)
 end
 
 -- Activated once BadGuy is alerted
 function RunBadGuyActivities()
     InsertBlueprints(BadGuyBaseBlueprints, BadGuyBaseExtraBlueprints)
     BuildBase(BadGuyBaseBlueprints, BadGuyFact, BadGuy)
-
+	
+	if Difficulty == "hard" or Difficulty == "challenge" then
+		--InsertBlueprints(BadGuyBaseBlueprints, BadGuySamBlueprints)
+	end
 	-- Attack creation is started upon producer building creation
+
 end

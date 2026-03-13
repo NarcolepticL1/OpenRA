@@ -23,13 +23,13 @@ World:
 		SkipTimerExpiredNotification: True
 
 # TODO remove this later. It makes BadGuy use the more distinct Ukraine colors.
-^Palettes:
-	IndexedPlayerPalette:
-		PlayerIndex:
-			BadGuy: 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223
-	IndexedPlayerPalette@NOSHADOW:
-		PlayerIndex:
-			BadGuy: 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223
+#^Palettes:
+#	IndexedPlayerPalette:
+#		PlayerIndex:
+#			BadGuy: 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223
+#	IndexedPlayerPalette@NOSHADOW:
+#		PlayerIndex:
+#			BadGuy: 208, 209, 210, 211, 212, 213, 214, 215, 216, 217, 218, 219, 220, 221, 222, 223
 
 CAMERA.watcher:
 	Inherits: CAMERA

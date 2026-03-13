@@ -998,12 +998,6 @@ Actors:
 		Location: 97,45
 		Faction: soviet
 		Owner: Neutral
-	Actor340: dome
-		Owner: BadGuy
-		Location: 125,1
-	Actor341: fix
-		Owner: BadGuy
-		Location: 122,1
 	USSRLoadUnits: waypoint
 		Location: 55,29
 		Owner: Neutral

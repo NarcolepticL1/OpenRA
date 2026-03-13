@@ -83,7 +83,7 @@ local InfAtkProductionInterval
 local ArmorAtkProductionIntervals = { easy = DateTime.Seconds(120), normal = DateTime.Seconds(90), hard = DateTime.Seconds(60), challenge = DateTime.Seconds(20) }
 local ArmorAtkProductionInterval
 
-local SubAtkProductionIntervals = { easy = DateTime.Seconds(100), normal = DateTime.Seconds(80), hard = DateTime.Seconds(60), challenge = DateTime.Seconds(20) }
+local SubAtkProductionIntervals = { easy = DateTime.Seconds(110), normal = DateTime.Seconds(90), hard = DateTime.Seconds(70), challenge = DateTime.Seconds(20) }
 local SubAtkProductionInterval
 
 local FirstAirDelays = { easy = DateTime.Seconds(180), normal = DateTime.Seconds(120), hard = DateTime.Seconds(60), challenge = DateTime.Seconds(60) }
